@@ -1,123 +1,110 @@
-# semmap
+# SEMMAP CLI
 
-Plain-text codebase maps for LLM context.
+A Rust CLI tool for generating, validating, and managing Semantic Maps for codebases.
 
-## Install
+## What is SEMMAP?
 
-cargo install semmap
+SEMMAP (Semantic Map) is a Markdown documentation format that maps your codebase for LLMs. It prioritizes semantic intent over file structure using flat paths, rigorous descriptions, and architectural layering.
+
+## Installation
+
+```bash
+cargo build --release
+# Binary will be at ./target/release/semmap
+```
 
 ## Usage
 
-# Validate existing semmap
-semmap validate SEMMAP.md
+### Generate a SEMMAP from your codebase
 
-# Check for drift against actual codebase
-semmap drift SEMMAP.md
-
-# Apply a patch (from LLM or manual)
-semmap patch SEMMAP.md patch.semmap
-
-# Generate skeleton from codebase (you still write descriptions)
-semmap init > SEMMAP.md
-
-## Specification
-
-See SPEC.md
+```bash
+semmap generate --root ./src --name "myproject" --purpose "A description of your project"
 ```
 
----
+Options:
+- `--root` / `-r`: Root directory to scan (default: `.`)
+- `--output` / `-o`: Output file path (default: `SEMMAP.md`)
+- `--name`: Project name (defaults to directory name)
+- `--purpose`: Project purpose statement
+- `--format`: Output format: `md`, `json`, `toml` (default: `md`)
 
-## CLI Design
+### Validate a SEMMAP
 
-### Commands
-
-```
-semmap validate <file>
-    --strict              Fail on warnings
-    --max-tokens <n>      Override per-entry token limit (default: 200)
-
-semmap drift <file>
-    Compare semmap entries against actual filesystem.
-    Reports: missing files, undocumented files, stale paths.
-
-semmap patch <file> <patch>
-    Apply structured patch. Validates before writing.
-    --dry-run             Show what would change
-    --backup              Write .bak before modifying
-
-semmap init
-    Walk codebase, emit skeleton with paths + token counts.
-    Descriptions are empty — human/LLM fills them in.
-    --include <glob>      Only include matching paths
-    --exclude <glob>      Skip matching paths
+```bash
+semmap validate --file SEMMAP.md --root ./src
 ```
 
-### Validation Rules
+Options:
+- `--file` / `-f`: Path to SEMMAP file (default: `SEMMAP.md`)
+- `--root` / `-r`: Root directory to check file existence (default: `.`)
+- `--strict`: Also check for undocumented files in the codebase
 
-```rust
-pub struct ValidationConfig {
-    /// Max tokens per file entry description
-    pub max_tokens_per_entry: usize,  // default: 200
-    
-    /// Allowed tags (empty = any)
-    pub allowed_tags: HashSet<String>,
-    
-    /// Require all layers to have at least one entry
-    pub require_all_layers: bool,  // default: false
-    
-    /// All referenced paths must exist on disk
-    pub check_paths_exist: bool,  // default: true
-    
-    /// All `→ Depends on:` targets must be documented
-    pub check_dependency_coverage: bool,  // default: true
-}
+### Analyze Dependencies
+
+```bash
+semmap deps --file SEMMAP.md --root ./src
 ```
 
-### Validation Checks
+Options:
+- `--file` / `-f`: Path to SEMMAP file (default: `SEMMAP.md`)
+- `--root` / `-r`: Root directory of codebase (default: `.`)
+- `--format`: Output format: `mermaid`, `json` (default: `mermaid`)
+- `--check`: Check for layer violations (lower layers should not depend on higher layers)
 
-| Check | Severity | Description |
-|-------|----------|-------------|
-| `path_exists` | Error | Referenced file doesn't exist |
-| `path_undocumented` | Warning | File exists but not in semmap |
-| `unknown_tag` | Error | Tag not in allowed set |
-| `token_overflow` | Error | Entry exceeds token limit |
-| `duplicate_path` | Error | Same path documented twice |
-| `orphan_dependency` | Warning | `→ Depends on:` references undocumented file |
-| `layer_empty` | Warning | A layer section has no entries |
-| `malformed_entry` | Error | Entry doesn't match expected format |
+### Update an Existing SEMMAP
 
----
-
-## Patch Format
-
-LLMs output patches, not full rewrites. Patches are auditable and reversible.
-
-```
-# patch.semmap
-
-ADD src/vulkan/import.rs
-layer: 2
-tags: CRITICAL, UNSAFE
-description: DMA-BUF import logic. Wraps external memory into Vulkan images for zero-copy video frame handoff.
-depends_on: device.rs, surface.rs
-exports: ImportedImage, import_dmabuf
-
-UPDATE src/vulkan/device.rs
-tags: CRITICAL
-description: Logical device creation. Now also initializes import extensions when available.
-
-REMOVE src/vulkan/legacy.rs
-
-MOVE src/old/path.rs -> src/new/path.rs
+```bash
+semmap update --file SEMMAP.md --root ./src
 ```
 
-### Patch Rules
+This will:
+- Add entries for new files
+- Remove entries for deleted files
+- Preserve your existing descriptions
 
-1. `ADD` fails if path already documented
-2. `UPDATE` fails if path not documented
-3. `REMOVE` fails if path not documented
-4. `MOVE` updates path, preserves description unless also updating
-5. All patches validated before any are applied
-6. Atomic: all succeed or none applied
+## SEMMAP Format
 
----
+```markdown
+# project-name — Semantic Map
+
+**Purpose:** One sentence describing the project goal.
+
+## Legend
+
+`[TAG]` Definition of the tag.
+
+## Layer 0 — Config
+
+`path/to/file.ext`
+[What it does]. [Why it exists].
+→ Exports: Optional comma-separated list
+→ Touch: Optional constraints or gotchas
+
+## Layer 1 — Core
+
+...
+```
+
+### Layer Schema
+
+| Layer | Name | Purpose |
+|-------|------|---------|
+| 0 | Config | Build, runtime configuration |
+| 1 | Core | Entry points, library roots |
+| 2 | Domain | Core business logic, types |
+| 3 | Utilities | Helper functions, common code |
+| 4 | Tests | Test files |
+
+### Description Rules
+
+Every description must answer:
+1. **What** — What does this file do? (One sentence ending with period)
+2. **Why** — Why does it exist as a separate unit?
+
+## Integration with SlopChop
+
+SEMMAP pairs well with [SlopChop](https://github.com/...) for enforcing code quality. Use SEMMAP to document architecture and SlopChop to enforce it.
+
+## License
+
+MIT
