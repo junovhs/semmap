@@ -32,15 +32,14 @@ pub fn generate(root: &Path, config: GeneratorConfig) -> SemmapFile {
     
     let project_name = if config.project_name.is_empty() {
         root.file_name()
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_else(|| "project".into())
+            .map_or_else(|| "project".into(), |n| n.to_string_lossy().to_string())
     } else {
         config.project_name
     };
 
     let mut semmap = SemmapFile::new(project_name, config.purpose);
     semmap.legend = default_legend();
-    semmap.layers = build_layers(classified, root);
+    semmap.layers = build_layers(&classified);
 
     semmap
 }
@@ -52,7 +51,7 @@ fn collect_files(root: &Path, config: &GeneratorConfig) -> Vec<std::path::PathBu
         .into_iter()
         .filter_entry(|e| !is_excluded(e, &config.exclude_dirs));
 
-    for entry in walker.filter_map(|e| e.ok()) {
+    for entry in walker.filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -60,8 +59,7 @@ fn collect_files(root: &Path, config: &GeneratorConfig) -> Vec<std::path::PathBu
         let matches_ext = entry.path()
             .extension()
             .and_then(|e| e.to_str())
-            .map(|e| config.include_exts.iter().any(|inc| inc == e))
-            .unwrap_or(false);
+            .is_some_and(|e| config.include_exts.iter().any(|inc| inc == e));
 
         if matches_ext {
             files.push(entry.path().to_path_buf());
@@ -147,8 +145,8 @@ fn infer_what(rel_path: &str, file: &Path) -> String {
         .unwrap_or("");
 
     match ext {
-        "rs" if rel_path.contains("main") => format!("Application entry point."),
-        "rs" if rel_path.contains("lib") => format!("Library root and public exports."),
+        "rs" if rel_path.contains("main") => "Application entry point.".into(),
+        "rs" if rel_path.contains("lib") => "Library root and public exports.".into(),
         "rs" if rel_path.contains("mod") => format!("Module definitions for {stem}."),
         "rs" => format!("Implements {stem} functionality."),
         "toml" if stem == "Cargo" => "Rust package manifest and dependencies.".into(),
@@ -206,19 +204,19 @@ fn extract_exports(file: &Path) -> Option<Vec<String>> {
 fn extract_ident(line: &str, prefix: &str) -> Option<String> {
     let rest = line.strip_prefix(prefix)?;
     let end = rest.find(|c: char| !c.is_alphanumeric() && c != '_')?;
-    Some(rest[..end].to_string())
+    Some(rest.get(..end)?.to_string())
 }
 
-fn build_layers(classified: HashMap<u8, Vec<FileEntry>>, _root: &Path) -> Vec<Layer> {
+fn build_layers(classified: &HashMap<u8, Vec<FileEntry>>) -> Vec<Layer> {
     let names = ["Config", "Core", "Domain", "Utilities", "Tests"];
     let mut layers = Vec::new();
 
     for num in 0..5u8 {
         if let Some(entries) = classified.get(&num) {
             if !entries.is_empty() {
-                let name = names.get(num as usize).unwrap_or(&"Other");
-                let mut layer = Layer::new(num, name.to_string());
-                layer.entries = entries.clone();
+                let name = names.get(num as usize).copied().unwrap_or("Other");
+                let mut layer = Layer::new(num, (*name).to_string());
+                layer.entries.clone_from(entries);
                 layers.push(layer);
             }
         }

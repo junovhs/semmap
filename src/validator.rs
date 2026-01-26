@@ -183,7 +183,7 @@ fn collect_source_files(root: &Path) -> Vec<String> {
         .into_iter()
         .filter_entry(|e| !is_ignored(e));
 
-    for entry in walker.filter_map(|e| e.ok()) {
+    for entry in walker.filter_map(Result::ok) {
         if entry.file_type().is_file() && is_source_file(entry.path()) {
             if let Ok(rel) = entry.path().strip_prefix(root) {
                 files.push(rel.to_string_lossy().to_string());
@@ -203,6 +203,5 @@ fn is_source_file(path: &Path) -> bool {
     let exts = ["rs", "ts", "js", "py", "go", "java", "c", "cpp", "h"];
     path.extension()
         .and_then(|e| e.to_str())
-        .map(|e| exts.contains(&e))
-        .unwrap_or(false)
+        .is_some_and(|e| exts.contains(&e))
 }

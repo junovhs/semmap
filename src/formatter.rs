@@ -1,4 +1,5 @@
 use crate::types::SemmapFile;
+use std::fmt::Write;
 
 pub fn to_markdown(semmap: &SemmapFile) -> String {
     let mut out = String::new();
@@ -11,10 +12,10 @@ pub fn to_markdown(semmap: &SemmapFile) -> String {
 }
 
 fn write_header(out: &mut String, semmap: &SemmapFile) {
-    out.push_str(&format!("# {} — Semantic Map\n\n", semmap.project_name));
+    let _ = writeln!(out, "# {} — Semantic Map\n", semmap.project_name);
 
     if !semmap.purpose.is_empty() {
-        out.push_str(&format!("**Purpose:** {}\n\n", semmap.purpose));
+        let _ = writeln!(out, "**Purpose:** {}\n", semmap.purpose);
     }
 }
 
@@ -26,28 +27,28 @@ fn write_legend(out: &mut String, semmap: &SemmapFile) {
     out.push_str("## Legend\n\n");
 
     for entry in &semmap.legend {
-        out.push_str(&format!("`[{}]` {}\n\n", entry.tag, entry.definition));
+        let _ = writeln!(out, "`[{}]` {}\n", entry.tag, entry.definition);
     }
 }
 
 fn write_layers(out: &mut String, semmap: &SemmapFile) {
     for layer in &semmap.layers {
-        out.push_str(&format!("## Layer {} — {}\n\n", layer.number, layer.name));
+        let _ = writeln!(out, "## Layer {} — {}\n", layer.number, layer.name);
 
         for entry in &layer.entries {
-            out.push_str(&format!("`{}`\n", entry.path));
+            let _ = writeln!(out, "`{}`", entry.path);
             
             let desc = format_description(&entry.description);
-            out.push_str(&format!("{}\n", desc));
+            let _ = writeln!(out, "{desc}");
 
             if let Some(exports) = &entry.exports {
                 if !exports.is_empty() {
-                    out.push_str(&format!("→ Exports: {}\n", exports.join(", ")));
+                    let _ = writeln!(out, "→ Exports: {}", exports.join(", "));
                 }
             }
 
             if let Some(touch) = &entry.touch {
-                out.push_str(&format!("→ Touch: {}\n", touch));
+                let _ = writeln!(out, "→ Touch: {touch}");
             }
 
             out.push('\n');

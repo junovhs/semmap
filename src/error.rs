@@ -31,7 +31,7 @@ pub enum Severity {
 impl fmt::Display for SemmapError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Io(e) => write!(f, "IO error: {}", e),
+            Self::Io(e) => write!(f, "IO error: {e}"),
             Self::Parse(e) => write!(f, "Parse error at line {}: {}", e.line, e.message),
             Self::Validation(issues) => {
                 writeln!(f, "Validation failed with {} issues:", issues.len())?;
@@ -71,11 +71,13 @@ impl ValidationIssue {
         }
     }
 
+    #[must_use]
     pub fn at_line(mut self, line: usize) -> Self {
         self.line = Some(line);
         self
     }
 
+    #[must_use]
     pub fn for_path(mut self, path: impl Into<String>) -> Self {
         self.path = Some(path.into());
         self

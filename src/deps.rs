@@ -1,6 +1,7 @@
 use crate::types::{DepEdge, DepKind, DepNode, DependencyMap, SemmapFile};
 use regex::Regex;
 use std::collections::HashSet;
+use std::fmt::Write;
 use std::fs;
 use std::path::Path;
 
@@ -84,9 +85,9 @@ fn extract_rust_imports(content: &str, source_path: &str) -> Vec<(String, DepKin
 
 fn resolve_rust_module(base_dir: &str, module: &str) -> String {
     if base_dir.is_empty() {
-        format!("src/{}.rs", module)
+        format!("src/{module}.rs")
     } else {
-        format!("{}/{}.rs", base_dir, module)
+        format!("{base_dir}/{module}.rs")
     }
 }
 
@@ -99,11 +100,11 @@ fn extract_js_imports(content: &str, source_path: &str) -> Vec<(String, DepKind)
     let base_dir = Path::new(source_path).parent();
 
     let extract = |re: Option<Regex>| -> Vec<String> {
-        re.map(|r| {
+        re.map_or_else(Vec::new, |r| {
             r.captures_iter(content)
                 .filter_map(|c| c.get(1).map(|m| m.as_str().to_string()))
                 .collect()
-        }).unwrap_or_default()
+        })
     };
 
     for relative in extract(import_re).into_iter().chain(extract(require_re)) {
@@ -119,7 +120,7 @@ fn resolve_js_path(base: Option<&Path>, relative: &str) -> Option<String> {
     let base = base?;
     let mut path = base.join(relative);
     
-    if !path.extension().is_some() {
+    if path.extension().is_none() {
         path.set_extension("ts");
         if !path.exists() {
             path.set_extension("js");
@@ -148,7 +149,7 @@ fn extract_python_imports(content: &str) -> Vec<(String, DepKind)> {
             if let Some(m) = cap.get(1) {
                 let module = m.as_str();
                 if !is_stdlib(module) {
-                    deps.push((format!("{}.py", module), DepKind::Import));
+                    deps.push((format!("{module}.py"), DepKind::Import));
                 }
             }
         }
@@ -169,9 +170,8 @@ pub fn render_mermaid(depmap: &DependencyMap) -> String {
         let id = sanitize_id(&node.path);
         let label = Path::new(&node.path)
             .file_name()
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_else(|| node.path.clone());
-        out.push_str(&format!("    {}[\"{}\"]\n", id, label));
+            .map_or_else(|| node.path.clone(), |n| n.to_string_lossy().to_string());
+        let _ = writeln!(out, "    {id}[\"{label}\"]");
     }
 
     for edge in &depmap.edges {
@@ -182,7 +182,7 @@ pub fn render_mermaid(depmap: &DependencyMap) -> String {
             DepKind::Trait => "-.->",
             DepKind::Call => "==>",
         };
-        out.push_str(&format!("    {} {} {}\n", from_id, arrow, to_id));
+        let _ = writeln!(out, "    {from_id} {arrow} {to_id}");
     }
 
     out
@@ -203,8 +203,8 @@ pub fn check_layer_violations(depmap: &DependencyMap, semmap: &SemmapFile) -> Ve
         if let (Some(fl), Some(tl)) = (from_layer, to_layer) {
             if tl > fl {
                 violations.push(format!(
-                    "Layer violation: {} (L{}) depends on {} (L{})",
-                    edge.from, fl, edge.to, tl
+                    "Layer violation: {} (L{fl}) depends on {} (L{tl})",
+                    edge.from, edge.to
                 ));
             }
         }
