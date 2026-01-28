@@ -51,9 +51,9 @@ fn parse_file_entry(path: String, lines: &[&str], idx: &mut usize) -> FileEntry 
             break;
         }
 
-        if let Some(rest) = trimmed.strip_prefix(" Exports:") {
+        if let Some(rest) = trimmed.strip_prefix("Exports:") {
             exports = Some(parse_exports(rest));
-        } else if let Some(rest) = trimmed.strip_prefix(" Touch:") {
+        } else if let Some(rest) = trimmed.strip_prefix("Touch:") {
             touch = Some(rest.trim().into());
         } else {
             desc_parts.push(trimmed);
@@ -82,4 +82,4 @@ fn split_description(desc: &str) -> (String, String) {
         Some((first, rest)) => (format!("{first}."), rest.into()),
         None => (desc.into(), String::new()),
     }
-}
+}

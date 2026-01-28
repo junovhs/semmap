@@ -11,7 +11,7 @@ static LAYER_RE: OnceLock<Option<Regex>> = OnceLock::new();
 
 fn title_regex() -> Option<&'static Regex> {
     TITLE_RE.get_or_init(|| {
-        Regex::new(r"^#\s+(.+?)\s*[--]\s*Semantic Map")
+        Regex::new(r"^#\s+(.+?)\s*(?:--|-)\s*Semantic Map")
             .or_else(|_| Regex::new(r"^#\s+(.+)"))
             .ok()
     }).as_ref()
@@ -35,7 +35,7 @@ fn legend_regex() -> Option<&'static Regex> {
 
 fn layer_regex() -> Option<&'static Regex> {
     LAYER_RE.get_or_init(|| {
-        Regex::new(r"^##\s+Layer\s+(\d+)\s*[--]\s*(.+)")
+        Regex::new(r"^##\s+Layer\s+(\d+)\s*(?:--|-)\s*(.+)")
             .or_else(|_| Regex::new(r"^##\s+Layer\s+(\d+)"))
             .ok()
     }).as_ref()
@@ -146,4 +146,4 @@ fn parse_layers(lines: &[&str], idx: &mut usize) -> Vec<Layer> {
     }
 
     layers
-}
+}
