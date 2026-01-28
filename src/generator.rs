@@ -71,6 +71,9 @@ fn collect_files(root: &Path, config: &GeneratorConfig) -> Vec<std::path::PathBu
 }
 
 fn is_excluded(entry: &walkdir::DirEntry, excludes: &[String]) -> bool {
+    if entry.depth() == 0 {
+        return false;
+    }
     let name = entry.file_name().to_string_lossy();
     name.starts_with('.') || excludes.iter().any(|ex| ex == name.as_ref())
 }
@@ -127,4 +130,4 @@ fn default_legend() -> Vec<LegendEntry> {
         LegendEntry { tag: "TYPE".into(), definition: "Data structures and types".into() },
         LegendEntry { tag: "UTIL".into(), definition: "Utility functions".into() },
     ]
-}
+}
