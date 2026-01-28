@@ -5,7 +5,6 @@ pub mod formatter;
 pub mod generator;
 pub mod inference;
 pub mod lang_python;
-pub mod parse_entries;
 pub mod parser;
 pub mod path_utils;
 pub mod types;

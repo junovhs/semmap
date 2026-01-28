@@ -1,3 +1,4 @@
+use crate::lang_python;
 use crate::types::{DepEdge, DepKind, DepNode, DependencyMap, SemmapFile};
 use regex::Regex;
 use std::collections::HashSet;
@@ -44,7 +45,7 @@ fn extract_imports(content: &str, source_path: &str) -> Vec<(String, DepKind)> {
     match ext {
         "rs" => extract_rust_imports(content, source_path),
         "ts" | "js" => extract_js_imports(content, source_path),
-        "py" => extract_python_imports(content),
+        "py" => lang_python::extract_imports(content),
         _ => Vec::new(),
     }
 }
@@ -130,39 +131,6 @@ fn resolve_js_path(base: Option<&Path>, relative: &str) -> Option<String> {
     Some(path.to_string_lossy().to_string())
 }
 
-fn extract_python_imports(content: &str) -> Vec<(String, DepKind)> {
-    let mut deps = Vec::new();
-    
-    let import_re = Regex::new(r"from\s+\.(\w+)\s+import").ok();
-    let simple_re = Regex::new(r"import\s+(\w+)").ok();
-
-    if let Some(re) = import_re {
-        for cap in re.captures_iter(content) {
-            if let Some(m) = cap.get(1) {
-                deps.push((format!("{}.py", m.as_str()), DepKind::Import));
-            }
-        }
-    }
-
-    if let Some(re) = simple_re {
-        for cap in re.captures_iter(content) {
-            if let Some(m) = cap.get(1) {
-                let module = m.as_str();
-                if !is_stdlib(module) {
-                    deps.push((format!("{module}.py"), DepKind::Import));
-                }
-            }
-        }
-    }
-
-    deps
-}
-
-fn is_stdlib(module: &str) -> bool {
-    let stdlib = ["os", "sys", "re", "json", "typing", "collections", "pathlib"];
-    stdlib.contains(&module)
-}
-
 pub fn render_mermaid(depmap: &DependencyMap) -> String {
     let mut out = String::from("graph TD\n");
 
@@ -211,4 +179,4 @@ pub fn check_layer_violations(depmap: &DependencyMap, semmap: &SemmapFile) -> Ve
     }
 
     violations
-}
+}

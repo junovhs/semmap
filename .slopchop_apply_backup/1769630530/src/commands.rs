@@ -1,4 +1,4 @@
-use semmap::{deps, formatter, generator, parser, path_utils, validator, SemmapFile};
+use semmap::{deps, formatter, generator, parser, validator, SemmapFile};
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
@@ -18,7 +18,7 @@ pub fn validate(file: &Path, root: &Path, strict: bool) -> Result<(), String> {
     print_validation_result(&result);
 
     if result.is_valid() {
-        println!("* SEMMAP is valid");
+        println!("� SEMMAP is valid");
         Ok(())
     } else {
         Err(format!("{} errors, {} warnings", result.error_count(), result.warning_count()))
@@ -27,10 +27,9 @@ pub fn validate(file: &Path, root: &Path, strict: bool) -> Result<(), String> {
 
 fn print_validation_result(result: &validator::ValidationResult) {
     for issue in &result.issues {
-        let icon = if issue.severity == semmap::error::Severity::Error {
-            "X"
-        } else {
-            "!"
+        let icon = match issue.severity {
+            semmap::error::Severity::Error => "?",
+            semmap::error::Severity::Warning => "?",
         };
 
         let location = match (&issue.path, &issue.line) {
@@ -78,7 +77,7 @@ pub fn generate(
 
     let file_count: usize = semmap.layers.iter().map(|l| l.entries.len()).sum();
     println!(
-        "* Generated {} ({} layers, {file_count} files)",
+        "� Generated {} ({} layers, {file_count} files)",
         output.display(),
         semmap.layers.len()
     );
@@ -91,15 +90,16 @@ pub fn deps(file: &Path, root: &Path, format: &str, check: bool) -> Result<(), S
         fs::read_to_string(file).map_err(|e| format!("Failed to read {}: {e}", file.display()))?;
 
     let semmap = parser::parse(&content).map_err(|e| format!("Parse error: {e}"))?;
+
     let depmap = deps::analyze(root, &semmap);
 
     if check {
         let violations = deps::check_layer_violations(&depmap, &semmap);
         if violations.is_empty() {
-            println!("* No layer violations");
+            println!("� No layer violations");
         } else {
             for v in &violations {
-                println!("X {v}");
+                println!("? {v}");
             }
             return Err(format!("{} layer violations", violations.len()));
         }
@@ -129,25 +129,48 @@ pub fn update(file: &Path, root: &Path) -> Result<(), String> {
         },
     );
 
-    let root_prefix = path_utils::build_root_prefix(root);
+    let root_prefix = build_root_prefix(root);
     
     let existing: HashSet<String> = semmap.all_paths().into_iter().map(String::from).collect();
     let current: HashSet<String> = fresh
         .all_paths()
         .into_iter()
-        .map(|p| path_utils::prefix_path(&root_prefix, p))
+        .map(|p| prefix_path(&root_prefix, p))
         .collect();
 
     let added: Vec<String> = current.difference(&existing).cloned().collect();
     let removed: Vec<String> = existing.difference(&current).cloned().collect();
 
-    add_new_entries(&mut semmap, &added, &fresh, &root_prefix);
-    remove_deleted_entries(&mut semmap, &removed);
+    let added_count = added.len();
+    let removed_count = removed.len();
+
+    let target_layer = guess_layer_for_new(&semmap);
+    let layer_idx = semmap.layers.iter().position(|l| l.number == target_layer);
+
+    for path in &added {
+        let lookup = strip_prefix_for_lookup(&root_prefix, path);
+        if let Some(entry) = fresh.find_entry(&lookup) {
+            if let Some(idx) = layer_idx {
+                if let Some(layer) = semmap.layers.get_mut(idx) {
+                    let mut new_entry = entry.clone();
+                    new_entry.path = path.clone();
+                    layer.entries.push(new_entry);
+                }
+            }
+        }
+    }
+
+    let removed_set: HashSet<&str> = removed.iter().map(String::as_str).collect();
+    for layer in &mut semmap.layers {
+        layer
+            .entries
+            .retain(|e| !removed_set.contains(e.path.as_str()));
+    }
 
     let output = formatter::to_markdown(&semmap);
     fs::write(file, &output).map_err(|e| format!("Failed to write {}: {e}", file.display()))?;
 
-    println!("* Updated SEMMAP: +{} -{}", added.len(), removed.len());
+    println!("� Updated SEMMAP: +{added_count} -{removed_count}");
     for path in &added {
         println!("  + {path}");
     }
@@ -158,27 +181,34 @@ pub fn update(file: &Path, root: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn add_new_entries(semmap: &mut SemmapFile, added: &[String], fresh: &SemmapFile, prefix: &str) {
-    let target_layer = semmap.layers.first().map_or(2, |l| l.number);
-    let layer_idx = semmap.layers.iter().position(|l| l.number == target_layer);
-
-    for path in added {
-        let lookup = path_utils::strip_prefix_for_lookup(prefix, path);
-        if let Some(entry) = fresh.find_entry(&lookup) {
-            if let Some(idx) = layer_idx {
-                if let Some(layer) = semmap.layers.get_mut(idx) {
-                    let mut new_entry = entry.clone();
-                    new_entry.path.clone_from(path);
-                    layer.entries.push(new_entry);
-                }
-            }
-        }
+fn build_root_prefix(root: &Path) -> String {
+    let root_str = root.to_string_lossy();
+    let cleaned = root_str.trim_start_matches("./");
+    if cleaned == "." || cleaned.is_empty() {
+        String::new()
+    } else {
+        cleaned.to_string()
     }
 }
 
-fn remove_deleted_entries(semmap: &mut SemmapFile, removed: &[String]) {
-    let removed_set: HashSet<&str> = removed.iter().map(String::as_str).collect();
-    for layer in &mut semmap.layers {
-        layer.entries.retain(|e| !removed_set.contains(e.path.as_str()));
+fn prefix_path(prefix: &str, path: &str) -> String {
+    if prefix.is_empty() {
+        path.to_string()
+    } else {
+        format!("{prefix}/{path}")
     }
+}
+
+fn strip_prefix_for_lookup(prefix: &str, path: &str) -> String {
+    if prefix.is_empty() {
+        path.to_string()
+    } else {
+        path.strip_prefix(&format!("{prefix}/"))
+            .unwrap_or(path)
+            .to_string()
+    }
+}
+
+fn guess_layer_for_new(semmap: &SemmapFile) -> u8 {
+    semmap.layers.first().map_or(2, |l| l.number)
 }
