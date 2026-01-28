@@ -1,5 +1,5 @@
 SLOPCHOP CHECK REPORT
-Generated: 2026-01-28 13:55:22
+Generated: 2026-01-28 13:58:13
 Status: PASSED
 
 === DASHBOARD ===
@@ -40,36 +40,60 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
 running 6 tests
-test test_generate_finds_config_layer0 ... ok
+test test_render_mermaid_edges ... ok
+test test_same_layer_no_violation ... ok
+test test_layer_violation_detected ... ok
+test test_valid_dependency_no_violation ... ok
+test test_render_mermaid_header ... ok
+test test_render_mermaid_nodes ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+test test_inference_main_lib_layer1 ... ok
 test test_generate_extracts_exports ... ok
-test test_generate_respects_excludes ... ok
 test test_generate_identifies_tests_layer4 ... ok
 test test_generate_defaults_to_layer2 ... ok
-test test_inference_main_lib_layer1 ... ok
+test test_generate_finds_config_layer0 ... ok
+test test_generate_respects_excludes ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 6 tests
 test test_parse_missing_title ... ok
 test test_parse_legend ... ok
+test test_parse_exports_and_touch ... ok
+test test_parse_valid_simple_semmap ... ok
 test test_parse_description_splitting ... ok
 test test_parse_multiple_layers ... ok
-test test_parse_valid_simple_semmap ... ok
-test test_parse_exports_and_touch ... ok
 
 test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 8 tests
-test test_layer_gap_is_warning ... ok
-test test_missing_what_is_error ... ok
-test test_file_not_found_is_error ... ok
-test test_missing_purpose_is_warning ... ok
+test test_build_root_prefix_current_dir ... ok
+test test_strip_prefix_with_prefix ... ok
+test test_strip_prefix_no_match ... ok
+test test_build_root_prefix_plain ... ok
+test test_prefix_path_empty ... ok
+test test_strip_prefix_empty ... ok
+test test_prefix_path_with_prefix ... ok
+test test_build_root_prefix_relative ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 8 tests
 test test_valid_semmap_passes ... ok
 test test_duplicate_paths_is_error ... ok
-test test_no_layers_is_error ... ok
+test test_missing_purpose_is_warning ... ok
+test test_layer_gap_is_warning ... ok
+test test_missing_what_is_error ... ok
 test test_missing_project_name_is_error ... ok
+test test_no_layers_is_error ... ok
+test test_file_not_found_is_error ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
@@ -80,11 +104,13 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
    Compiling semmap v0.1.0 (C:\Users\SpencerNunamakerTrav\semmap)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
      Running unittests src\lib.rs (target\debug\deps\semmap-7c686dadd1a50840.exe)
      Running unittests src\main.rs (target\debug\deps\semmap-055a7bcee5ddb0d7.exe)
+     Running tests\deps_tests.rs (target\debug\deps\deps_tests-74ee245c7245ed2f.exe)
      Running tests\generator_tests.rs (target\debug\deps\generator_tests-8431557f0fa3192b.exe)
      Running tests\parser_tests.rs (target\debug\deps\parser_tests-e7fb28690ff0685f.exe)
+     Running tests\path_utils.rs (target\debug\deps\path_utils-1b64b254b7894600.exe)
      Running tests\validator_tests.rs (target\debug\deps\validator_tests-e350187796b8c427.exe)
    Doc-tests semmap
 
