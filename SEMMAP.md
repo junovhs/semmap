@@ -26,10 +26,6 @@ Library root and public exports. Provides application entry point.
 `src/main.rs`
 Validate a SEMMAP file. Provides application entry point.
 
-`src/stereotype.rs`
-Stereotype classification for architectural role detection. Defines command-line interface.
-→ Exports: Stereotype, classify, stereotype_to_why
-
 ## Layer 2 -- Domain
 
 `src/commands.rs`
@@ -76,6 +72,10 @@ Parses entries. Parses input into structured data.
 Implements parser functionality. Parses input into structured data.
 → Exports: parse
 
+`src/stereotype.rs`
+Stereotype classification for architectural role detection. Supports application functionality.
+→ Exports: Stereotype, classify, stereotype_to_why
+
 `src/swum.rs`
 SWUM (Software Word Usage Model) for identifier expansion. Supports application functionality.
 → Exports: expand_identifier
@@ -85,7 +85,7 @@ Implements types functionality. Defines domain data structures.
 → Exports: DepEdge, DepKind, DepNode, DependencyMap, Description, FileEntry, Layer, LegendEntry, SemmapFile, all_paths, find_entry, new, path_to_layer
 
 `src/validator.rs`
-Implements validator functionality. Supports application functionality.
+Validates SEMMAP files for correctness and completeness. Supports application functionality.
 → Exports: ValidationResult, error_count, is_valid, validate, validate_against_codebase, warning_count
 
 ## Layer 3 -- Utilities

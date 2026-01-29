@@ -1,3 +1,5 @@
+//! Validates SEMMAP files for correctness and completeness.
+
 use crate::error::{Severity, ValidationIssue};
 use crate::types::SemmapFile;
 use std::collections::HashSet;
@@ -13,11 +15,17 @@ impl ValidationResult {
     }
 
     pub fn error_count(&self) -> usize {
-        self.issues.iter().filter(|i| i.severity == Severity::Error).count()
+        self.issues
+            .iter()
+            .filter(|i| i.severity == Severity::Error)
+            .count()
     }
 
     pub fn warning_count(&self) -> usize {
-        self.issues.iter().filter(|i| i.severity == Severity::Warning).count()
+        self.issues
+            .iter()
+            .filter(|i| i.severity == Severity::Warning)
+            .count()
     }
 }
 
@@ -28,7 +36,8 @@ pub fn validate(semmap: &SemmapFile, root: Option<&Path>) -> ValidationResult {
     check_layers(semmap, &mut issues);
     check_entries(semmap, &mut issues);
     check_duplicates(semmap, &mut issues);
-    
+    check_description_quality(semmap, &mut issues);
+
     if let Some(root_path) = root {
         check_files_exist(semmap, root_path, &mut issues);
     }
@@ -47,7 +56,7 @@ fn check_header(semmap: &SemmapFile, issues: &mut Vec<ValidationIssue>) {
 
     if semmap.purpose.len() > 200 {
         issues.push(ValidationIssue::warning(
-            "Purpose should be one concise sentence (under 200 chars)"
+            "Purpose should be one concise sentence (under 200 chars)",
         ));
     }
 }
@@ -63,31 +72,35 @@ fn check_layers(semmap: &SemmapFile, issues: &mut Vec<ValidationIssue>) {
 
     for layer in &semmap.layers {
         if seen_numbers.contains(&layer.number) {
-            issues.push(ValidationIssue::error(
-                format!("Duplicate layer number: {}", layer.number)
-            ));
+            issues.push(ValidationIssue::error(format!(
+                "Duplicate layer number: {}",
+                layer.number
+            )));
         }
         seen_numbers.insert(layer.number);
 
         if let Some(prev) = prev_num {
             if layer.number != prev + 1 {
-                issues.push(ValidationIssue::warning(
-                    format!("Layer {} should follow {} (gap detected)", layer.number, prev)
-                ));
+                issues.push(ValidationIssue::warning(format!(
+                    "Layer {} should follow {} (gap detected)",
+                    layer.number, prev
+                )));
             }
         }
         prev_num = Some(layer.number);
 
         if layer.name.is_empty() {
-            issues.push(ValidationIssue::warning(
-                format!("Layer {} has no name", layer.number)
-            ));
+            issues.push(ValidationIssue::warning(format!(
+                "Layer {} has no name",
+                layer.number
+            )));
         }
 
         if layer.entries.is_empty() {
-            issues.push(ValidationIssue::warning(
-                format!("Layer {} ({}) has no entries", layer.number, layer.name)
-            ));
+            issues.push(ValidationIssue::warning(format!(
+                "Layer {} ({}) has no entries",
+                layer.number, layer.name
+            )));
         }
     }
 }
@@ -107,24 +120,47 @@ fn validate_entry(entry: &crate::types::FileEntry, issues: &mut Vec<ValidationIs
     }
 
     if entry.description.what.is_empty() {
-        issues.push(
-            ValidationIssue::error("Missing WHAT description")
-                .for_path(&entry.path)
-        );
+        issues.push(ValidationIssue::error("Missing WHAT description").for_path(&entry.path));
     }
 
     if entry.description.why.is_empty() {
-        issues.push(
-            ValidationIssue::warning("Missing WHY description")
-                .for_path(&entry.path)
-        );
+        issues.push(ValidationIssue::warning("Missing WHY description").for_path(&entry.path));
     }
 
     if !entry.description.what.ends_with('.') && !entry.description.what.is_empty() {
-        issues.push(
-            ValidationIssue::warning("WHAT should end with a period")
-                .for_path(&entry.path)
-        );
+        issues
+            .push(ValidationIssue::warning("WHAT should end with a period").for_path(&entry.path));
+    }
+}
+
+/// Check for generic/low-quality descriptions that indicate missing documentation.
+fn check_description_quality(semmap: &SemmapFile, issues: &mut Vec<ValidationIssue>) {
+    let generic_patterns = [
+        "Implements ",
+        "Handles ",
+        "Supports application functionality",
+    ];
+
+    for layer in &semmap.layers {
+        for entry in &layer.entries {
+            let what = &entry.description.what;
+
+            // Skip config files - they don't need doc comments
+            if entry.path.ends_with(".toml") || entry.path.ends_with(".json") {
+                continue;
+            }
+
+            // Check for generic descriptions that indicate no doc comment was found
+            let is_generic = generic_patterns.iter().any(|p| what.starts_with(p))
+                || what.contains("functionality.");
+
+            if is_generic {
+                issues.push(
+                    ValidationIssue::warning("Missing module doc comment (//!). Add documentation to improve WHAT description")
+                        .for_path(&entry.path)
+                );
+            }
+        }
     }
 }
 
@@ -134,10 +170,7 @@ fn check_duplicates(semmap: &SemmapFile, issues: &mut Vec<ValidationIssue>) {
     for layer in &semmap.layers {
         for entry in &layer.entries {
             if seen_paths.contains(entry.path.as_str()) {
-                issues.push(
-                    ValidationIssue::error("Duplicate path")
-                        .for_path(&entry.path)
-                );
+                issues.push(ValidationIssue::error("Duplicate path").for_path(&entry.path));
             }
             seen_paths.insert(&entry.path);
         }
@@ -149,10 +182,7 @@ fn check_files_exist(semmap: &SemmapFile, root: &Path, issues: &mut Vec<Validati
         for entry in &layer.entries {
             let full_path = root.join(&entry.path);
             if !full_path.exists() {
-                issues.push(
-                    ValidationIssue::error("File not found")
-                        .for_path(&entry.path)
-                );
+                issues.push(ValidationIssue::error("File not found").for_path(&entry.path));
             }
         }
     }
@@ -160,16 +190,13 @@ fn check_files_exist(semmap: &SemmapFile, root: &Path, issues: &mut Vec<Validati
 
 pub fn validate_against_codebase(semmap: &SemmapFile, root: &Path) -> ValidationResult {
     let mut issues = validate(semmap, Some(root)).issues;
-    
+
     let documented: HashSet<_> = semmap.all_paths().into_iter().collect();
     let actual = collect_source_files(root);
 
     for file in &actual {
         if !documented.contains(file.as_str()) {
-            issues.push(
-                ValidationIssue::warning("File not documented in SEMMAP")
-                    .for_path(file)
-            );
+            issues.push(ValidationIssue::warning("File not documented in SEMMAP").for_path(file));
         }
     }
 
@@ -186,7 +213,7 @@ fn collect_source_files(root: &Path) -> Vec<String> {
     for entry in walker.filter_map(Result::ok) {
         if entry.file_type().is_file() && is_source_file(entry.path()) {
             if let Ok(rel) = entry.path().strip_prefix(root) {
-                files.push(rel.to_string_lossy().to_string());
+                files.push(rel.to_string_lossy().replace('\\', "/"));
             }
         }
     }

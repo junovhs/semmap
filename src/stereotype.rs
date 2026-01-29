@@ -23,22 +23,15 @@ pub enum Stereotype {
 pub fn classify(path: &str, content: &str) -> Stereotype {
     let lower_path = path.to_lowercase();
 
-    // Check filename-based stereotypes first (fast path)
     if let Some(s) = classify_by_filename(&lower_path) {
         return s;
     }
-
-    // Check import-based stereotypes
     if let Some(s) = classify_by_imports(content) {
         return s;
     }
-
-    // Check name-based patterns
     if let Some(s) = classify_by_name_pattern(&lower_path, content) {
         return s;
     }
-
-    // Check content-based patterns
     if is_mostly_structs(content) {
         return Stereotype::Entity;
     }
@@ -46,7 +39,6 @@ pub fn classify(path: &str, content: &str) -> Stereotype {
     Stereotype::Unknown
 }
 
-/// Classify based on filename patterns.
 fn classify_by_filename(path: &str) -> Option<Stereotype> {
     if is_config_file(path) {
         return Some(Stereotype::Config);
@@ -63,23 +55,28 @@ fn classify_by_filename(path: &str) -> Option<Stereotype> {
     None
 }
 
-/// Classify based on import statements.
 fn classify_by_imports(content: &str) -> Option<Stereotype> {
-    if has_cli_imports(content) {
-        return Some(Stereotype::Cli);
-    }
-    if has_http_imports(content) {
-        return Some(Stereotype::Handler);
-    }
-    if has_db_imports(content) {
-        return Some(Stereotype::Repository);
+    // Parse actual use statements - check line starts with "use crate::"
+    for line in content.lines() {
+        let t = line.trim();
+        if t.starts_with("use clap") || t.starts_with("use structopt") || t.starts_with("use argh")
+        {
+            return Some(Stereotype::Cli);
+        }
+        if t.starts_with("use axum") || t.starts_with("use actix") || t.starts_with("use rocket") {
+            return Some(Stereotype::Handler);
+        }
+        if t.starts_with("use diesel") || t.starts_with("use sqlx") || t.starts_with("use rusqlite")
+        {
+            return Some(Stereotype::Repository);
+        }
     }
     None
 }
 
-/// Classify based on name patterns.
 fn classify_by_name_pattern(path: &str, content: &str) -> Option<Stereotype> {
-    if path.contains("parse") || has_regex_imports(content) {
+    let has_regex = content.lines().any(|l| l.trim().starts_with("use regex"));
+    if path.contains("parse") || has_regex {
         return Some(Stereotype::Parser);
     }
     if path.contains("format") || path.contains("render") {
@@ -117,45 +114,24 @@ pub fn stereotype_to_why(s: Stereotype) -> &'static str {
 }
 
 fn is_config_file(path: &str) -> bool {
-    let config_exts = [".toml", ".yaml", ".yml", ".json"];
-    let config_names = ["config", "settings", "cargo", "package", "tsconfig"];
-
-    config_exts.iter().any(|e| path.ends_with(e)) || config_names.iter().any(|n| path.contains(n))
+    path.ends_with(".toml")
+        || path.ends_with(".yaml")
+        || path.ends_with(".yml")
+        || path.ends_with(".json")
+        || path.contains("config")
+        || path.contains("cargo")
 }
 
 fn is_test_file(path: &str) -> bool {
-    path.contains("test") || path.contains("spec") || path.contains("_test.")
+    path.contains("test") || path.contains("spec")
 }
 
 fn is_entrypoint(path: &str) -> bool {
     path.ends_with("main.rs") || path.ends_with("lib.rs") || path.ends_with("mod.rs")
 }
 
-fn has_cli_imports(content: &str) -> bool {
-    content.contains("use clap")
-        || content.contains("use structopt")
-        || content.contains("use argh")
-}
-
-fn has_http_imports(content: &str) -> bool {
-    content.contains("use axum")
-        || content.contains("use actix")
-        || content.contains("use rocket")
-        || content.contains("use warp")
-}
-
-fn has_db_imports(content: &str) -> bool {
-    content.contains("use diesel")
-        || content.contains("use sqlx")
-        || content.contains("use rusqlite")
-}
-
-fn has_regex_imports(content: &str) -> bool {
-    content.contains("use regex")
-}
-
 fn is_mostly_structs(content: &str) -> bool {
-    let struct_count = content.matches("pub struct ").count();
-    let fn_count = content.matches("pub fn ").count();
-    struct_count > 2 && struct_count > fn_count
+    let structs = content.matches("pub struct ").count();
+    let fns = content.matches("pub fn ").count();
+    structs > 2 && structs > fns
 }
