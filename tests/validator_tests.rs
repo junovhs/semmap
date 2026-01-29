@@ -156,3 +156,19 @@ fn test_missing_what_is_error() {
     let result = validate(&s, None);
     assert!(!result.is_valid(), "Missing WHAT should fail");
 }
+use semmap::validator::ValidationResult;
+use semmap::ValidationIssue;
+
+#[test]
+fn validation_result_counts_accurate() {
+    let issues = vec![
+        ValidationIssue::error("error 1"),
+        ValidationIssue::error("error 2"),
+        ValidationIssue::warning("warning 1"),
+    ];
+    let result = ValidationResult { issues };
+
+    assert_eq!(result.error_count(), 2);
+    assert_eq!(result.warning_count(), 1);
+    assert!(!result.is_valid());
+}

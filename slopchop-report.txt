@@ -1,21 +1,21 @@
 SLOPCHOP CHECK REPORT
-Generated: 2026-01-28 22:58:48
+Generated: 2026-01-29 11:51:32
 Status: PASSED
 
 === DASHBOARD ===
 Top 5 Cognitive Complexity:
-  15   src/swum.rs
-  14   src/stereotype.rs
-  13   src/formatter.rs
-  12   src/validator.rs
-  12   src/deps.rs
+  15   src\swum.rs
+  14   src\stereotype.rs
+  13   src\formatter.rs
+  12   src\deps.rs
+  12   src\inference.rs
 
 Top 5 Largest Files (Tokens):
-  1471  src/deps.rs
-  1312  src/commands.rs
-  1221  src/validator.rs
-  1217  src/parser.rs
-  1214  tests/deps_tests.rs
+  1471  src\deps.rs
+  1312  src\commands.rs
+  1278  tests\validator_tests.rs
+  1221  src\validator.rs
+  1217  src\parser.rs
 
 === VIOLATIONS ===
 None. Codebase is clean.
@@ -23,17 +23,17 @@ None. Codebase is clean.
 === FULL OUTPUT LOGS ===
 
 >>> COMMAND: cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::unwrap_used -W clippy::expect_used -W clippy::indexing_slicing -A clippy::struct_excessive_bools -A clippy::module_name_repetitions -A clippy::missing_errors_doc -A clippy::must_use_candidate
-    Checking semmap v0.1.0 (/home/juno/semmap)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.40s
+    Checking semmap v1.0.0 (C:\Users\SpencerNunamakerTrav\semmap)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
 
 
 >>> COMMAND: cargo test
 
 running 6 tests
 test doc_extractor::tests::test_item_doc ... ok
-test doc_extractor::tests::test_module_doc ... ok
 test doc_extractor::tests::test_no_doc ... ok
 test swum::tests::test_camel_case ... ok
+test doc_extractor::tests::test_module_doc ... ok
 test swum::tests::test_single_word ... ok
 test swum::tests::test_snake_case ... ok
 
@@ -45,10 +45,31 @@ running 0 tests
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
+running 1 test
+test analyze_finds_rust_imports ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 3 tests
+test generate_json_format_arm_not_deleted ... ok
+test validate_fails_on_missing_file ... ok
+test generate_toml_format_arm_not_deleted ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 2 tests
+test layer_violation_detects_specific_patterns ... ok
+test layer_violation_ignores_facade_files ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
 running 6 tests
+test test_render_mermaid_edges ... ok
 test test_layer_violation_detected ... ok
 test test_render_mermaid_header ... ok
-test test_render_mermaid_edges ... ok
 test test_render_mermaid_nodes ... ok
 test test_same_layer_no_violation ... ok
 test test_valid_dependency_no_violation ... ok
@@ -65,64 +86,77 @@ test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
 running 3 tests
+test test_generate_finds_config_layer0 ... ok
 test test_generate_defaults_to_layer2 ... ok
 test test_generate_identifies_tests_layer4 ... ok
-test test_generate_finds_config_layer0 ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 6 tests
 test test_parse_missing_title ... ok
 test test_parse_legend ... ok
-test test_parse_multiple_layers ... ok
-test test_parse_exports_and_touch ... ok
 test test_parse_valid_simple_semmap ... ok
 test test_parse_description_splitting ... ok
+test test_parse_exports_and_touch ... ok
+test test_parse_multiple_layers ... ok
 
 test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 8 tests
-test test_build_root_prefix_current_dir ... ok
 test test_build_root_prefix_plain ... ok
 test test_build_root_prefix_relative ... ok
-test test_prefix_path_empty ... ok
-test test_prefix_path_with_prefix ... ok
 test test_strip_prefix_empty ... ok
-test test_strip_prefix_no_match ... ok
 test test_strip_prefix_with_prefix ... ok
+test test_build_root_prefix_current_dir ... ok
+test test_prefix_path_with_prefix ... ok
+test test_strip_prefix_no_match ... ok
+test test_prefix_path_empty ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
+running 7 tests
+test swum_render_verbs ... ok
+test swum_find_verbs ... ok
+test swum_convert_verbs ... ok
+test swum_delete_verbs ... ok
+test swum_handle_verbs ... ok
+test swum_test_verbs ... ok
+test swum_update_verbs ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
 running 3 tests
+test test_update_preserves_existing_descriptions ... ok
 test test_update_creates_missing_layers_for_new_entries ... ok
 test test_update_is_idempotent ... ok
-test test_update_preserves_existing_descriptions ... ok
 
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 3 tests
 test test_update_removes_deleted_files ... ok
-test test_update_adds_new_file_to_correct_layer ... ok
 test test_update_with_root_prefix_handles_paths_correctly ... ok
+test test_update_adds_new_file_to_correct_layer ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
 
 
-running 8 tests
-test test_duplicate_paths_is_error ... ok
-test test_layer_gap_is_warning ... ok
-test test_file_not_found_is_error ... ok
-test test_missing_purpose_is_warning ... ok
+running 9 tests
 test test_missing_project_name_is_error ... ok
-test test_no_layers_is_error ... ok
-test test_valid_semmap_passes ... ok
+test test_duplicate_paths_is_error ... ok
+test test_missing_purpose_is_warning ... ok
+test test_layer_gap_is_warning ... ok
 test test_missing_what_is_error ... ok
+test test_no_layers_is_error ... ok
+test validation_result_counts_accurate ... ok
+test test_valid_semmap_passes ... ok
+test test_file_not_found_is_error ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
 running 0 tests
@@ -130,18 +164,22 @@ running 0 tests
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
-   Compiling semmap v0.1.0 (/home/juno/semmap)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s
-     Running unittests src/lib.rs (target/debug/deps/semmap-1d630aceb17859b1)
-     Running unittests src/main.rs (target/debug/deps/semmap-aa8774ee57954d9b)
-     Running tests/deps_tests.rs (target/debug/deps/deps_tests-32d01dc1d2f90337)
-     Running tests/generator_more_tests.rs (target/debug/deps/generator_more_tests-0ba905b359d29a1d)
-     Running tests/generator_tests.rs (target/debug/deps/generator_tests-26f55daf90784bbb)
-     Running tests/parser_tests.rs (target/debug/deps/parser_tests-40f0cd0191de037a)
-     Running tests/path_utils.rs (target/debug/deps/path_utils-d17adba514cec397)
-     Running tests/update_more_tests.rs (target/debug/deps/update_more_tests-699654d4e5cf40fc)
-     Running tests/update_tests.rs (target/debug/deps/update_tests-0ace0e75ccbd45d0)
-     Running tests/validator_tests.rs (target/debug/deps/validator_tests-4aeb2cfa6897188a)
+   Compiling semmap v1.0.0 (C:\Users\SpencerNunamakerTrav\semmap)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.63s
+     Running unittests src\lib.rs (target\debug\deps\semmap-1aec9cef9fa12543.exe)
+     Running unittests src\main.rs (target\debug\deps\semmap-0138894c74acaf5a.exe)
+     Running tests\analyze_mutation.rs (target\debug\deps\analyze_mutation-af67aeee452c7114.exe)
+     Running tests\commands_mutation.rs (target\debug\deps\commands_mutation-9995c3af0fc5f1c3.exe)
+     Running tests\deps_mutation.rs (target\debug\deps\deps_mutation-75b8113ed89e6a76.exe)
+     Running tests\deps_tests.rs (target\debug\deps\deps_tests-321a352946359993.exe)
+     Running tests\generator_more_tests.rs (target\debug\deps\generator_more_tests-431a348e4e6e451a.exe)
+     Running tests\generator_tests.rs (target\debug\deps\generator_tests-1b8cb5794fdb6631.exe)
+     Running tests\parser_tests.rs (target\debug\deps\parser_tests-2f7f184091140364.exe)
+     Running tests\path_utils.rs (target\debug\deps\path_utils-e715fed2f4b813cd.exe)
+     Running tests\swum_verbs.rs (target\debug\deps\swum_verbs-60767093e2ca6a7a.exe)
+     Running tests\update_more_tests.rs (target\debug\deps\update_more_tests-43d5a0c19faf401f.exe)
+     Running tests\update_tests.rs (target\debug\deps\update_tests-a2610c01fcb8527f.exe)
+     Running tests\validator_tests.rs (target\debug\deps\validator_tests-d9819f3aafd3a902.exe)
    Doc-tests semmap
 
 

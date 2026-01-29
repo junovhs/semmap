@@ -1,0 +1,15 @@
+# .cargo/mutants.toml
+
+# Skip test files - they test, not get tested
+exclude_globs = [
+    "tests/**",
+    "**/test*.rs",
+    "*_test.rs",
+]
+
+# Skip trivial/generated code
+exclude_re = [
+    "Default::default",  # derived defaults
+    "impl Display",      # formatting only
+    "impl Debug",        # debug only
+]
