@@ -1,19 +1,24 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
 
 pub fn extract_exports(file: &Path) -> Option<Vec<String>> {
     let content = fs::read_to_string(file).ok()?;
-    let mut exports = Vec::new();
+    let mut exports = BTreeSet::new();
 
     for line in content.lines() {
         let trimmed = line.trim();
-        
+
         if let Some(name) = try_extract_pub_item(trimmed) {
-            exports.push(name);
+            exports.insert(name);
         }
     }
 
-    if exports.is_empty() { None } else { Some(exports) }
+    if exports.is_empty() {
+        None
+    } else {
+        Some(exports.into_iter().collect())
+    }
 }
 
 fn try_extract_pub_item(line: &str) -> Option<String> {
@@ -36,4 +41,4 @@ fn extract_ident(line: &str, prefix: &str) -> Option<String> {
     let rest = line.strip_prefix(prefix)?;
     let end = rest.find(|c: char| !c.is_alphanumeric() && c != '_')?;
     Some(rest.get(..end)?.to_string())
-}
+}

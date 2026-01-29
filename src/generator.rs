@@ -17,12 +17,21 @@ impl Default for GeneratorConfig {
         Self {
             project_name: String::new(),
             purpose: String::new(),
-            include_exts: vec![
-                "rs", "ts", "js", "py", "go", "java", "toml", "yaml", "json"
-            ].into_iter().map(String::from).collect(),
+            include_exts: vec!["rs", "ts", "js", "py", "go", "java", "toml", "yaml", "json"]
+                .into_iter()
+                .map(String::from)
+                .collect(),
             exclude_dirs: vec![
-                ".git", "target", "node_modules", "dist", "build", "__pycache__"
-            ].into_iter().map(String::from).collect(),
+                ".git",
+                "target",
+                "node_modules",
+                "dist",
+                "build",
+                "__pycache__",
+            ]
+            .into_iter()
+            .map(String::from)
+            .collect(),
         }
     }
 }
@@ -30,7 +39,7 @@ impl Default for GeneratorConfig {
 pub fn generate(root: &Path, config: GeneratorConfig) -> SemmapFile {
     let files = collect_files(root, &config);
     let classified = classify_by_layer(&files, root);
-    
+
     let project_name = if config.project_name.is_empty() {
         root.file_name()
             .map_or_else(|| "project".into(), |n| n.to_string_lossy().to_string())
@@ -57,7 +66,8 @@ fn collect_files(root: &Path, config: &GeneratorConfig) -> Vec<std::path::PathBu
             continue;
         }
 
-        let matches_ext = entry.path()
+        let matches_ext = entry
+            .path()
             .extension()
             .and_then(|e| e.to_str())
             .is_some_and(|e| config.include_exts.iter().any(|inc| inc == e));
@@ -67,6 +77,8 @@ fn collect_files(root: &Path, config: &GeneratorConfig) -> Vec<std::path::PathBu
         }
     }
 
+    // Sort for deterministic output
+    files.sort();
     files
 }
 
@@ -82,8 +94,9 @@ fn classify_by_layer(files: &[std::path::PathBuf], root: &Path) -> HashMap<u8, V
     let mut layers: HashMap<u8, Vec<FileEntry>> = HashMap::new();
 
     for file in files {
-        let rel_path = file.strip_prefix(root)
-            .map(|p| p.to_string_lossy().to_string())
+        let rel_path = file
+            .strip_prefix(root)
+            .map(|p| p.to_string_lossy().replace('\\', "/"))
             .unwrap_or_default();
 
         let layer = inference::infer_layer(&rel_path, file);
@@ -115,6 +128,8 @@ fn build_layers(classified: &HashMap<u8, Vec<FileEntry>>) -> Vec<Layer> {
                 let name = names.get(num as usize).copied().unwrap_or("Other");
                 let mut layer = Layer::new(num, (*name).to_string());
                 layer.entries.clone_from(entries);
+                // Sort entries by path for deterministic output
+                layer.entries.sort_by(|a, b| a.path.cmp(&b.path));
                 layers.push(layer);
             }
         }
@@ -125,9 +140,21 @@ fn build_layers(classified: &HashMap<u8, Vec<FileEntry>>) -> Vec<Layer> {
 
 fn default_legend() -> Vec<LegendEntry> {
     vec![
-        LegendEntry { tag: "ENTRY".into(), definition: "Application entry point".into() },
-        LegendEntry { tag: "CORE".into(), definition: "Core business logic".into() },
-        LegendEntry { tag: "TYPE".into(), definition: "Data structures and types".into() },
-        LegendEntry { tag: "UTIL".into(), definition: "Utility functions".into() },
+        LegendEntry {
+            tag: "ENTRY".into(),
+            definition: "Application entry point".into(),
+        },
+        LegendEntry {
+            tag: "CORE".into(),
+            definition: "Core business logic".into(),
+        },
+        LegendEntry {
+            tag: "TYPE".into(),
+            definition: "Data structures and types".into(),
+        },
+        LegendEntry {
+            tag: "UTIL".into(),
+            definition: "Utility functions".into(),
+        },
     ]
 }
