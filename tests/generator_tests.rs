@@ -66,10 +66,12 @@ fn test_generate_defaults_to_layer2() -> TestResult {
         .find(|e| e.path == "my_logic.rs")
         .ok_or("my_logic.rs missing")?;
 
-    assert!(entry
-        .description
-        .what
-        .contains("Implements my_logic functionality"));
+    // SWUM expands "my_logic" to "Implements my logic."
+    assert!(
+        entry.description.what.contains("my") && entry.description.what.contains("logic"),
+        "Expected description to contain 'my' and 'logic', got: {}",
+        entry.description.what
+    );
     Ok(())
 }
 

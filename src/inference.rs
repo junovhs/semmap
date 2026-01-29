@@ -1,10 +1,34 @@
+//! Layer and description inference for SEMMAP generation.
+
+use crate::doc_extractor;
+use crate::stereotype::{self, Stereotype};
+use crate::swum;
 use std::path::Path;
 
-pub fn infer_layer(rel_path: &str, file: &Path) -> u8 {
+/// Infer the layer number for a file based on its path and content.
+pub fn infer_layer(rel_path: &str, file: &Path, content: &str) -> u8 {
+    let stereotype = stereotype::classify(rel_path, content);
+
+    match stereotype {
+        Stereotype::Config => 0,
+        Stereotype::Entrypoint | Stereotype::Cli => 1,
+        Stereotype::Entity
+        | Stereotype::Parser
+        | Stereotype::Formatter
+        | Stereotype::Service
+        | Stereotype::Error => 2,
+        Stereotype::Utility | Stereotype::Repository | Stereotype::Handler => 3,
+        Stereotype::Test => 4,
+        Stereotype::Unknown => infer_layer_from_path(rel_path, file),
+    }
+}
+
+/// Fallback layer inference from path patterns.
+fn infer_layer_from_path(rel_path: &str, file: &Path) -> u8 {
     let lower = rel_path.to_lowercase();
     let ext = file.extension().and_then(|e| e.to_str()).unwrap_or("");
 
-    if is_config_file(&lower, ext) {
+    if is_config_ext(ext) {
         return 0;
     }
 
@@ -27,46 +51,48 @@ pub fn infer_layer(rel_path: &str, file: &Path) -> u8 {
     2
 }
 
-fn is_config_file(path: &str, ext: &str) -> bool {
-    let config_exts = ["toml", "yaml", "yml", "json"];
-    let config_names = ["config", "settings", "cargo", "package", "tsconfig"];
-    
-    config_exts.contains(&ext) || config_names.iter().any(|n| path.contains(n))
+fn is_config_ext(ext: &str) -> bool {
+    matches!(ext, "toml" | "yaml" | "yml" | "json")
 }
 
-pub fn infer_what(rel_path: &str, file: &Path) -> String {
-    let stem = file.file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("file");
+/// Infer the WHAT description for a file.
+/// Priority: doc comment > SWUM expansion > generic fallback.
+pub fn infer_what(rel_path: &str, file: &Path, content: &str) -> String {
+    // Try doc comment first
+    if let Some(doc) = doc_extractor::extract_doc_comment(content) {
+        return doc;
+    }
 
-    let ext = file.extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
+    // Try SWUM expansion on file stem
+    let stem = file.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
 
+    let ext = file.extension().and_then(|e| e.to_str()).unwrap_or("");
+
+    // Special cases with good defaults
     match ext {
-        "rs" if rel_path.contains("main") => "Application entry point.".into(),
-        "rs" if rel_path.contains("lib") => "Library root and public exports.".into(),
-        "rs" if rel_path.contains("mod") => format!("Module definitions for {stem}."),
-        "rs" => format!("Implements {stem} functionality."),
-        "toml" if stem == "Cargo" => "Rust package manifest and dependencies.".into(),
-        "json" if stem == "package" => "Node.js package manifest.".into(),
-        "json" | "yaml" | "yml" => format!("Configuration for {stem}."),
-        _ => format!("Handles {stem}."),
+        "rs" if rel_path.contains("main") => return "Application entry point.".into(),
+        "rs" if rel_path.contains("lib") => return "Library root and public exports.".into(),
+        "rs" if rel_path.contains("mod") => return format!("Module definitions for {stem}."),
+        "toml" if stem == "Cargo" => return "Rust package manifest and dependencies.".into(),
+        "json" if stem == "package" => return "Node.js package manifest.".into(),
+        _ => {}
     }
+
+    // Use SWUM for code files
+    if matches!(ext, "rs" | "py" | "ts" | "js" | "go" | "java") {
+        return swum::expand_identifier(stem);
+    }
+
+    // Config files
+    if matches!(ext, "toml" | "yaml" | "yml" | "json") {
+        return format!("Configuration for {stem}.");
+    }
+
+    format!("Handles {stem}.")
 }
 
-pub fn infer_why(rel_path: &str) -> String {
-    if rel_path.contains("config") || rel_path.contains("Cargo") {
-        return "Centralizes build and runtime configuration.".into();
-    }
-    
-    if rel_path.contains("types") || rel_path.contains("model") {
-        return "Isolates data structures for reuse across modules.".into();
-    }
-
-    if rel_path.contains("error") {
-        return "Provides unified error handling.".into();
-    }
-
-    "Separates concerns for maintainability.".into()
-}
+/// Infer the WHY description for a file based on its stereotype.
+pub fn infer_why(rel_path: &str, content: &str) -> String {
+    let stereotype = stereotype::classify(rel_path, content);
+    stereotype::stereotype_to_why(stereotype).to_string()
+}

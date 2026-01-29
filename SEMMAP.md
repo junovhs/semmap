@@ -13,103 +13,115 @@
 ## Layer 0 -- Config
 
 `Cargo.toml`
-Rust package manifest and dependencies. Centralizes build and runtime configuration.
+Rust package manifest and dependencies. Centralizes project configuration.
 
 `slopchop.toml`
-Handles slopchop. Separates concerns for maintainability.
+Configuration for slopchop. Centralizes project configuration.
 
 ## Layer 1 -- Core
 
 `src/lib.rs`
-Library root and public exports. Separates concerns for maintainability.
+Library root and public exports. Provides application entry point.
 
 `src/main.rs`
-Application entry point. Separates concerns for maintainability.
+Validate a SEMMAP file. Provides application entry point.
+
+`src/stereotype.rs`
+Stereotype classification for architectural role detection. Defines command-line interface.
+→ Exports: Stereotype, classify, stereotype_to_why
 
 ## Layer 2 -- Domain
 
 `src/commands.rs`
-Implements commands functionality. Separates concerns for maintainability.
+Implements commands functionality. Orchestrates business logic.
 → Exports: deps, generate, update, validate
 
 `src/deps.rs`
-Implements deps functionality. Separates concerns for maintainability.
+Implements deps functionality. Parses input into structured data.
 → Exports: analyze, check_layer_violations, render_mermaid
 
+`src/doc_extractor.rs`
+Extracts documentation comments from source files. Supports application functionality.
+→ Exports: extract_doc_comment
+
 `src/error.rs`
-Implements error functionality. Provides unified error handling.
+Implements error functionality. Defines error types and handling.
 → Exports: ParseError, SemmapError, Severity, ValidationIssue, at_line, error, for_path, warning
 
 `src/exports.rs`
-Implements exports functionality. Separates concerns for maintainability.
+Implements exports functionality. Supports application functionality.
 → Exports: extract_exports
 
 `src/formatter.rs`
-Implements formatter functionality. Separates concerns for maintainability.
+Implements formatter functionality. Formats data for output.
 → Exports: to_json, to_markdown, to_toml
 
 `src/generator.rs`
-Implements generator functionality. Separates concerns for maintainability.
+Implements generator functionality. Supports application functionality.
 → Exports: GeneratorConfig, generate
 
 `src/inference.rs`
-Implements inference functionality. Separates concerns for maintainability.
+Layer and description inference for SEMMAP generation. Supports application functionality.
 → Exports: infer_layer, infer_what, infer_why
 
 `src/lang_python.rs`
-Implements lang_python functionality. Separates concerns for maintainability.
+Implements lang python. Parses input into structured data.
 → Exports: extract_imports
 
 `src/parse_entries.rs`
-Implements parse_entries functionality. Separates concerns for maintainability.
+Parses entries. Parses input into structured data.
 → Exports: parse_layer_entries
 
 `src/parser.rs`
-Implements parser functionality. Separates concerns for maintainability.
+Implements parser functionality. Parses input into structured data.
 → Exports: parse
 
+`src/swum.rs`
+SWUM (Software Word Usage Model) for identifier expansion. Supports application functionality.
+→ Exports: expand_identifier
+
 `src/types.rs`
-Implements types functionality. Isolates data structures for reuse across modules.
+Implements types functionality. Defines domain data structures.
 → Exports: DepEdge, DepKind, DepNode, DependencyMap, Description, FileEntry, Layer, LegendEntry, SemmapFile, all_paths, find_entry, new, path_to_layer
 
 `src/validator.rs`
-Implements validator functionality. Separates concerns for maintainability.
+Implements validator functionality. Supports application functionality.
 → Exports: ValidationResult, error_count, is_valid, validate, validate_against_codebase, warning_count
 
 ## Layer 3 -- Utilities
 
 `src/commands/update_helpers.rs`
-Implements update_helpers functionality. Separates concerns for maintainability.
+Sets the helpers. Provides reusable helper functions.
 → Exports: add_new_entries, remove_deleted_entries
 
 `src/path_utils.rs`
-Implements path_utils functionality. Separates concerns for maintainability.
+Computes the path prefix for entries based on root's position relative to `semmap_dir`. Provides reusable helper functions.
 → Exports: build_root_prefix, build_root_prefix_relative, prefix_path, strip_prefix_for_lookup
-
-`tests/path_utils.rs`
-Implements path_utils functionality. Separates concerns for maintainability.
 
 ## Layer 4 -- Tests
 
 `tests/deps_tests.rs`
-Implements deps_tests functionality. Separates concerns for maintainability.
+Lower layer depending on higher layer should be flagged as violation. Verifies correctness.
 
 `tests/generator_more_tests.rs`
-Implements generator_more_tests functionality. Separates concerns for maintainability.
+Verify that public items (structs, functions, enums, traits) are correctly extracted into the exports field. Verifies correctness.
 → Exports: Auth, Role, User, login
 
 `tests/generator_tests.rs`
-Implements generator_tests functionality. Separates concerns for maintainability.
+Verify that the generator detects a Cargo.toml file and correctly assigns it to Layer 0 (Config). Verifies correctness.
 
 `tests/parser_tests.rs`
-Implements parser_tests functionality. Separates concerns for maintainability.
+Implements parser tests. Verifies correctness.
+
+`tests/path_utils.rs`
+Current directory should produce empty prefix. Verifies correctness.
 
 `tests/update_more_tests.rs`
-Implements update_more_tests functionality. Separates concerns for maintainability.
+Sets the more tests. Verifies correctness.
 
 `tests/update_tests.rs`
-Implements update_tests functionality. Separates concerns for maintainability.
+Sets the tests. Verifies correctness.
 
 `tests/validator_tests.rs`
-Implements validator_tests functionality. Separates concerns for maintainability.
+A valid SEMMAP with proper structure should pass validation. Verifies correctness.
 

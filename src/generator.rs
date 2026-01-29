@@ -2,6 +2,7 @@ use crate::exports;
 use crate::inference;
 use crate::types::{FileEntry, Layer, LegendEntry, SemmapFile};
 use std::collections::HashMap;
+use std::fs;
 use std::path::Path;
 use walkdir::WalkDir;
 
@@ -99,8 +100,9 @@ fn classify_by_layer(files: &[std::path::PathBuf], root: &Path) -> HashMap<u8, V
             .map(|p| p.to_string_lossy().replace('\\', "/"))
             .unwrap_or_default();
 
-        let layer = inference::infer_layer(&rel_path, file);
-        let entry = create_entry(&rel_path, file);
+        let content = fs::read_to_string(file).unwrap_or_default();
+        let layer = inference::infer_layer(&rel_path, file, &content);
+        let entry = create_entry(&rel_path, file, &content);
 
         layers.entry(layer).or_default().push(entry);
     }
@@ -108,9 +110,9 @@ fn classify_by_layer(files: &[std::path::PathBuf], root: &Path) -> HashMap<u8, V
     layers
 }
 
-fn create_entry(rel_path: &str, file: &Path) -> FileEntry {
-    let what = inference::infer_what(rel_path, file);
-    let why = inference::infer_why(rel_path);
+fn create_entry(rel_path: &str, file: &Path, content: &str) -> FileEntry {
+    let what = inference::infer_what(rel_path, file, content);
+    let why = inference::infer_why(rel_path, content);
 
     let mut entry = FileEntry::new(rel_path.to_string(), what, why);
     entry.exports = exports::extract_exports(file);
