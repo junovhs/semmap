@@ -1,3 +1,5 @@
+//! Dependency analysis and layer violation detection.
+
 use crate::lang_python;
 use crate::types::{DepEdge, DepKind, DepNode, DependencyMap, SemmapFile};
 use regex::Regex;
@@ -12,11 +14,14 @@ pub fn analyze(root: &Path, semmap: &SemmapFile) -> DependencyMap {
 
     for path in semmap.all_paths() {
         let layer = path_to_layer.get(path).copied().unwrap_or(0);
-        depmap.nodes.push(DepNode { path: path.to_string(), layer });
+        depmap.nodes.push(DepNode {
+            path: path.to_string(),
+            layer,
+        });
     }
 
     let known_paths: HashSet<_> = semmap.all_paths().into_iter().collect();
-    
+
     for path in semmap.all_paths() {
         let full_path = root.join(path);
         if let Ok(content) = fs::read_to_string(&full_path) {
@@ -52,7 +57,7 @@ fn extract_imports(content: &str, source_path: &str) -> Vec<(String, DepKind)> {
 
 fn extract_rust_imports(content: &str, source_path: &str) -> Vec<(String, DepKind)> {
     let mut deps = Vec::new();
-    
+
     let use_re = Regex::new(r"use\s+(?:crate|super|self)::(\w+)").ok();
     let mod_re = Regex::new(r"mod\s+(\w+);").ok();
 
@@ -94,7 +99,7 @@ fn resolve_rust_module(base_dir: &str, module: &str) -> String {
 
 fn extract_js_imports(content: &str, source_path: &str) -> Vec<(String, DepKind)> {
     let mut deps = Vec::new();
-    
+
     let import_re = Regex::new(r#"(?:import|from)\s+['"]([./][^'"]+)['"]"#).ok();
     let require_re = Regex::new(r#"require\(['"]([./][^'"]+)['"]\)"#).ok();
 
@@ -120,7 +125,7 @@ fn extract_js_imports(content: &str, source_path: &str) -> Vec<(String, DepKind)
 fn resolve_js_path(base: Option<&Path>, relative: &str) -> Option<String> {
     let base = base?;
     let mut path = base.join(relative);
-    
+
     if path.extension().is_none() {
         path.set_extension("ts");
         if !path.exists() {
@@ -165,6 +170,11 @@ pub fn check_layer_violations(depmap: &DependencyMap, semmap: &SemmapFile) -> Ve
     let path_to_layer = semmap.path_to_layer();
 
     for edge in &depmap.edges {
+        // Skip facade files (lib.rs, mod.rs) - they re-export, not depend
+        if edge.from.ends_with("lib.rs") || edge.from.ends_with("mod.rs") {
+            continue;
+        }
+
         let from_layer = path_to_layer.get(edge.from.as_str()).copied();
         let to_layer = path_to_layer.get(edge.to.as_str()).copied();
 
@@ -179,4 +189,4 @@ pub fn check_layer_violations(depmap: &DependencyMap, semmap: &SemmapFile) -> Ve
     }
 
     violations
-}
+}

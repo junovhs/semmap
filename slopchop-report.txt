@@ -1,239 +1,41 @@
 SLOPCHOP CHECK REPORT
-Generated: 2026-01-28 17:02:21
-Status: FAILED
+Generated: 2026-01-28 22:58:48
+Status: PASSED
 
 === DASHBOARD ===
 Top 5 Cognitive Complexity:
-  14   src\stereotype.rs
-  14   src\swum.rs
-  13   src\formatter.rs
-  13   src\validator.rs
-  12   src\commands.rs
+  15   src/swum.rs
+  14   src/stereotype.rs
+  13   src/formatter.rs
+  12   src/validator.rs
+  12   src/deps.rs
 
 Top 5 Largest Files (Tokens):
-  1636  src\validator.rs
-  1419  src\deps.rs
-  1263  src\commands.rs
-  1217  src\parser.rs
-  1214  tests\deps_tests.rs
+  1471  src/deps.rs
+  1312  src/commands.rs
+  1221  src/validator.rs
+  1217  src/parser.rs
+  1214  tests/deps_tests.rs
 
 === VIOLATIONS ===
-[SlopChop Internal Rules]
-src\validator.rs:1 | LAW OF ATOMICITY | File size is 1636 tokens (Limit: 1500)
-
-[External Tools]
-FAILED: cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::unwrap_used -W clippy::expect_used -W clippy::indexing_slicing -A clippy::struct_excessive_bools -A clippy::module_name_repetitions -A clippy::missing_errors_doc -A clippy::must_use_candidate (Exit Code: 101)
--- STDOUT --
-
--- STDERR --
-    Checking semmap v0.1.0 (C:\Users\SpencerNunamakerTrav\semmap)
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:117:5
-    |
-117 |     path.ends_with(".toml")
-    |     ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-    = note: `-D clippy::case-sensitive-file-extension-comparisons` implied by `-D warnings`
-    = help: to override `-D warnings` add `#[allow(clippy::case_sensitive_file_extension_comparisons)]`
-help: use std::path::Path
-    |
-117 ~     std::path::Path::new(path)
-118 +         .extension()
-119 +         .is_some_and(|ext| ext.eq_ignore_ascii_case("toml"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:118:12
-    |
-118 |         || path.ends_with(".yaml")
-    |            ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-118 ~         || std::path::Path::new(path)
-119 +             .extension()
-120 +             .is_some_and(|ext| ext.eq_ignore_ascii_case("yaml"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:119:12
-    |
-119 |         || path.ends_with(".yml")
-    |            ^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-119 ~         || std::path::Path::new(path)
-120 +             .extension()
-121 +             .is_some_and(|ext| ext.eq_ignore_ascii_case("yml"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:120:12
-    |
-120 |         || path.ends_with(".json")
-    |            ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-120 ~         || std::path::Path::new(path)
-121 +             .extension()
-122 +             .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\validator.rs:149:16
-    |
-149 |             if entry.path.ends_with(".toml") || entry.path.ends_with(".json") {
-    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-149 ~             if std::path::Path::new(&entry.path)
-150 +                 .extension()
-151 ~                 .is_some_and(|ext| ext.eq_ignore_ascii_case("toml")) || entry.path.ends_with(".json") {
-    |
-
-error: case-sensitive file extension comparison
-   --> src\validator.rs:149:49
-    |
-149 |             if entry.path.ends_with(".toml") || entry.path.ends_with(".json") {
-    |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-149 ~             if entry.path.ends_with(".toml") || std::path::Path::new(&entry.path)
-150 +                 .extension()
-151 ~                 .is_some_and(|ext| ext.eq_ignore_ascii_case("json")) {
-    |
-
-error: could not compile `semmap` (lib) due to 6 previous errors
-warning: build failed, waiting for other jobs to finish...
-error: could not compile `semmap` (lib test) due to 6 previous errors
-
+None. Codebase is clean.
 
 === FULL OUTPUT LOGS ===
 
 >>> COMMAND: cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::unwrap_used -W clippy::expect_used -W clippy::indexing_slicing -A clippy::struct_excessive_bools -A clippy::module_name_repetitions -A clippy::missing_errors_doc -A clippy::must_use_candidate
-    Checking semmap v0.1.0 (C:\Users\SpencerNunamakerTrav\semmap)
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:117:5
-    |
-117 |     path.ends_with(".toml")
-    |     ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-    = note: `-D clippy::case-sensitive-file-extension-comparisons` implied by `-D warnings`
-    = help: to override `-D warnings` add `#[allow(clippy::case_sensitive_file_extension_comparisons)]`
-help: use std::path::Path
-    |
-117 ~     std::path::Path::new(path)
-118 +         .extension()
-119 +         .is_some_and(|ext| ext.eq_ignore_ascii_case("toml"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:118:12
-    |
-118 |         || path.ends_with(".yaml")
-    |            ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-118 ~         || std::path::Path::new(path)
-119 +             .extension()
-120 +             .is_some_and(|ext| ext.eq_ignore_ascii_case("yaml"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:119:12
-    |
-119 |         || path.ends_with(".yml")
-    |            ^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-119 ~         || std::path::Path::new(path)
-120 +             .extension()
-121 +             .is_some_and(|ext| ext.eq_ignore_ascii_case("yml"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\stereotype.rs:120:12
-    |
-120 |         || path.ends_with(".json")
-    |            ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-120 ~         || std::path::Path::new(path)
-121 +             .extension()
-122 +             .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
-    |
-
-error: case-sensitive file extension comparison
-   --> src\validator.rs:149:16
-    |
-149 |             if entry.path.ends_with(".toml") || entry.path.ends_with(".json") {
-    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-149 ~             if std::path::Path::new(&entry.path)
-150 +                 .extension()
-151 ~                 .is_some_and(|ext| ext.eq_ignore_ascii_case("toml")) || entry.path.ends_with(".json") {
-    |
-
-error: case-sensitive file extension comparison
-   --> src\validator.rs:149:49
-    |
-149 |             if entry.path.ends_with(".toml") || entry.path.ends_with(".json") {
-    |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = help: consider using a case-insensitive comparison instead
-    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
-help: use std::path::Path
-    |
-149 ~             if entry.path.ends_with(".toml") || std::path::Path::new(&entry.path)
-150 +                 .extension()
-151 ~                 .is_some_and(|ext| ext.eq_ignore_ascii_case("json")) {
-    |
-
-error: could not compile `semmap` (lib) due to 6 previous errors
-warning: build failed, waiting for other jobs to finish...
-error: could not compile `semmap` (lib test) due to 6 previous errors
+    Checking semmap v0.1.0 (/home/juno/semmap)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.40s
 
 
 >>> COMMAND: cargo test
 
 running 6 tests
 test doc_extractor::tests::test_item_doc ... ok
-test doc_extractor::tests::test_no_doc ... ok
 test doc_extractor::tests::test_module_doc ... ok
+test doc_extractor::tests::test_no_doc ... ok
 test swum::tests::test_camel_case ... ok
-test swum::tests::test_snake_case ... ok
 test swum::tests::test_single_word ... ok
+test swum::tests::test_snake_case ... ok
 
 test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
@@ -244,12 +46,12 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
 running 6 tests
-test test_render_mermaid_nodes ... ok
-test test_valid_dependency_no_violation ... ok
+test test_layer_violation_detected ... ok
 test test_render_mermaid_header ... ok
 test test_render_mermaid_edges ... ok
-test test_layer_violation_detected ... ok
+test test_render_mermaid_nodes ... ok
 test test_same_layer_no_violation ... ok
+test test_valid_dependency_no_violation ... ok
 
 test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
@@ -259,66 +61,66 @@ test test_generate_extracts_exports ... ok
 test test_generate_respects_excludes ... ok
 test test_inference_main_lib_layer1 ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
 running 3 tests
-test test_generate_finds_config_layer0 ... ok
 test test_generate_defaults_to_layer2 ... ok
 test test_generate_identifies_tests_layer4 ... ok
+test test_generate_finds_config_layer0 ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
 running 6 tests
 test test_parse_missing_title ... ok
 test test_parse_legend ... ok
-test test_parse_description_splitting ... ok
-test test_parse_exports_and_touch ... ok
 test test_parse_multiple_layers ... ok
+test test_parse_exports_and_touch ... ok
 test test_parse_valid_simple_semmap ... ok
+test test_parse_description_splitting ... ok
 
 test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 8 tests
+test test_build_root_prefix_current_dir ... ok
+test test_build_root_prefix_plain ... ok
+test test_build_root_prefix_relative ... ok
 test test_prefix_path_empty ... ok
+test test_prefix_path_with_prefix ... ok
+test test_strip_prefix_empty ... ok
 test test_strip_prefix_no_match ... ok
 test test_strip_prefix_with_prefix ... ok
-test test_prefix_path_with_prefix ... ok
-test test_build_root_prefix_current_dir ... ok
-test test_build_root_prefix_relative ... ok
-test test_strip_prefix_empty ... ok
-test test_build_root_prefix_plain ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
 running 3 tests
-test test_update_preserves_existing_descriptions ... ok
 test test_update_creates_missing_layers_for_new_entries ... ok
 test test_update_is_idempotent ... ok
+test test_update_preserves_existing_descriptions ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 3 tests
-test test_update_with_root_prefix_handles_paths_correctly ... ok
-test test_update_adds_new_file_to_correct_layer ... ok
 test test_update_removes_deleted_files ... ok
+test test_update_adds_new_file_to_correct_layer ... ok
+test test_update_with_root_prefix_handles_paths_correctly ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 8 tests
-test test_missing_what_is_error ... ok
-test test_valid_semmap_passes ... ok
+test test_duplicate_paths_is_error ... ok
 test test_layer_gap_is_warning ... ok
+test test_file_not_found_is_error ... ok
+test test_missing_purpose_is_warning ... ok
 test test_missing_project_name_is_error ... ok
 test test_no_layers_is_error ... ok
-test test_duplicate_paths_is_error ... ok
-test test_missing_purpose_is_warning ... ok
-test test_file_not_found_is_error ... ok
+test test_valid_semmap_passes ... ok
+test test_missing_what_is_error ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
@@ -328,18 +130,18 @@ running 0 tests
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
-   Compiling semmap v0.1.0 (C:\Users\SpencerNunamakerTrav\semmap)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.48s
-     Running unittests src\lib.rs (target\debug\deps\semmap-7c686dadd1a50840.exe)
-     Running unittests src\main.rs (target\debug\deps\semmap-055a7bcee5ddb0d7.exe)
-     Running tests\deps_tests.rs (target\debug\deps\deps_tests-74ee245c7245ed2f.exe)
-     Running tests\generator_more_tests.rs (target\debug\deps\generator_more_tests-62965f147c6278f4.exe)
-     Running tests\generator_tests.rs (target\debug\deps\generator_tests-8431557f0fa3192b.exe)
-     Running tests\parser_tests.rs (target\debug\deps\parser_tests-e7fb28690ff0685f.exe)
-     Running tests\path_utils.rs (target\debug\deps\path_utils-1b64b254b7894600.exe)
-     Running tests\update_more_tests.rs (target\debug\deps\update_more_tests-4b8d5d49e3e425cd.exe)
-     Running tests\update_tests.rs (target\debug\deps\update_tests-4080c9a8236ad8e4.exe)
-     Running tests\validator_tests.rs (target\debug\deps\validator_tests-e350187796b8c427.exe)
+   Compiling semmap v0.1.0 (/home/juno/semmap)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s
+     Running unittests src/lib.rs (target/debug/deps/semmap-1d630aceb17859b1)
+     Running unittests src/main.rs (target/debug/deps/semmap-aa8774ee57954d9b)
+     Running tests/deps_tests.rs (target/debug/deps/deps_tests-32d01dc1d2f90337)
+     Running tests/generator_more_tests.rs (target/debug/deps/generator_more_tests-0ba905b359d29a1d)
+     Running tests/generator_tests.rs (target/debug/deps/generator_tests-26f55daf90784bbb)
+     Running tests/parser_tests.rs (target/debug/deps/parser_tests-40f0cd0191de037a)
+     Running tests/path_utils.rs (target/debug/deps/path_utils-d17adba514cec397)
+     Running tests/update_more_tests.rs (target/debug/deps/update_more_tests-699654d4e5cf40fc)
+     Running tests/update_tests.rs (target/debug/deps/update_tests-0ace0e75ccbd45d0)
+     Running tests/validator_tests.rs (target/debug/deps/validator_tests-4aeb2cfa6897188a)
    Doc-tests semmap
 
 

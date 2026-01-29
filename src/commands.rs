@@ -8,8 +8,8 @@ mod update_helpers;
 use update_helpers::{add_new_entries, remove_deleted_entries};
 
 pub fn validate(file: &Path, root: &Path, strict: bool) -> Result<(), String> {
-    let content = fs::read_to_string(file)
-        .map_err(|e| format!("Failed to read {}: {e}", file.display()))?;
+    let content =
+        fs::read_to_string(file).map_err(|e| format!("Failed to read {}: {e}", file.display()))?;
     let semmap = parser::parse(&content).map_err(|e| format!("Parse error: {e}"))?;
     let result = if strict {
         validator::validate_against_codebase(&semmap, root)
@@ -17,27 +17,34 @@ pub fn validate(file: &Path, root: &Path, strict: bool) -> Result<(), String> {
         validator::validate(&semmap, Some(root))
     };
     print_validation_result(&result);
-    if result.is_valid() {
+
+    let has_errors = result.error_count() > 0;
+    let has_warnings = result.warning_count() > 0;
+
+    if has_errors || (strict && has_warnings) {
+        Err(format!(
+            "{} errors, {} warnings",
+            result.error_count(),
+            result.warning_count()
+        ))
+    } else {
         println!("* SEMMAP is valid");
         Ok(())
-    } else {
-        Err(format!("{} errors, {} warnings", result.error_count(), result.warning_count()))
     }
 }
 
 fn print_validation_result(result: &validator::ValidationResult) {
     for issue in &result.issues {
-        let icon = if issue.severity == Severity::Error { "X" } else { "!" };
-        let location = match (&issue.path, &issue.line) {
-            (Some(p), Some(l)) => format!("{p}:{l}"),
-            (Some(p), None) => p.clone(),
-            (None, Some(l)) => format!("line {l}"),
-            (None, None) => String::new(),
-        };
-        if location.is_empty() {
-            println!("{icon} {}", issue.message);
+        let icon = if issue.severity == Severity::Error {
+            "X"
         } else {
-            println!("{icon} [{location}] {}", issue.message);
+            "!"
+        };
+        match (&issue.path, &issue.line) {
+            (Some(p), Some(l)) => println!("{icon} [{p}:{l}] {}", issue.message),
+            (Some(p), None) => println!("{icon} [{p}] {}", issue.message),
+            (None, Some(l)) => println!("{icon} [line {l}] {}", issue.message),
+            (None, None) => println!("{icon} {}", issue.message),
         }
     }
     if !result.issues.is_empty() {
@@ -45,7 +52,13 @@ fn print_validation_result(result: &validator::ValidationResult) {
     }
 }
 
-pub fn generate(root: &Path, output: &Path, name: Option<String>, purpose: Option<String>, format: &str) -> Result<(), String> {
+pub fn generate(
+    root: &Path,
+    output: &Path,
+    name: Option<String>,
+    purpose: Option<String>,
+    format: &str,
+) -> Result<(), String> {
     let config = generator::GeneratorConfig {
         project_name: name.unwrap_or_default(),
         purpose: purpose.unwrap_or_default(),
@@ -60,13 +73,17 @@ pub fn generate(root: &Path, output: &Path, name: Option<String>, purpose: Optio
     fs::write(output, &content)
         .map_err(|e| format!("Failed to write {}: {e}", output.display()))?;
     let file_count: usize = semmap.layers.iter().map(|l| l.entries.len()).sum();
-    println!("* Generated {} ({} layers, {file_count} files)", output.display(), semmap.layers.len());
+    println!(
+        "* Generated {} ({} layers, {file_count} files)",
+        output.display(),
+        semmap.layers.len()
+    );
     Ok(())
 }
 
 pub fn deps(file: &Path, root: &Path, format: &str, check: bool) -> Result<(), String> {
-    let content = fs::read_to_string(file)
-        .map_err(|e| format!("Failed to read {}: {e}", file.display()))?;
+    let content =
+        fs::read_to_string(file).map_err(|e| format!("Failed to read {}: {e}", file.display()))?;
     let semmap = parser::parse(&content).map_err(|e| format!("Parse error: {e}"))?;
     let depmap = deps::analyze(root, &semmap);
     if check {
@@ -89,18 +106,22 @@ pub fn deps(file: &Path, root: &Path, format: &str, check: bool) -> Result<(), S
 }
 
 pub fn update(file: &Path, root: &Path) -> Result<(), String> {
-    let content = fs::read_to_string(file)
-        .map_err(|e| format!("Failed to read {}: {e}", file.display()))?;
+    let content =
+        fs::read_to_string(file).map_err(|e| format!("Failed to read {}: {e}", file.display()))?;
     let mut semmap = parser::parse(&content).map_err(|e| format!("Parse error: {e}"))?;
-    let fresh = generator::generate(root, generator::GeneratorConfig {
-        project_name: semmap.project_name.clone(),
-        purpose: semmap.purpose.clone(),
-        ..Default::default()
-    });
+    let fresh = generator::generate(
+        root,
+        generator::GeneratorConfig {
+            project_name: semmap.project_name.clone(),
+            purpose: semmap.purpose.clone(),
+            ..Default::default()
+        },
+    );
     let semmap_dir = file.parent().unwrap_or(Path::new("."));
     let root_prefix = path_utils::build_root_prefix_relative(semmap_dir, root);
     let existing: HashSet<String> = semmap.all_paths().into_iter().map(String::from).collect();
-    let current: HashSet<String> = fresh.all_paths()
+    let current: HashSet<String> = fresh
+        .all_paths()
         .into_iter()
         .map(|p| path_utils::prefix_path(&root_prefix, p))
         .collect();

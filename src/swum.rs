@@ -24,7 +24,8 @@ pub fn expand_identifier(name: &str) -> String {
 fn expand_verb_pattern(verb: &str, rest: &str) -> String {
     match verb {
         "get" | "fetch" | "load" | "read" | "retrieve" => format!("Gets the {rest}."),
-        "set" | "update" | "write" | "save" | "store" => format!("Sets the {rest}."),
+        "set" | "write" | "save" | "store" => format!("Sets the {rest}."),
+        "update" | "sync" | "refresh" => format!("Updates {rest}."),
         "is" | "has" | "can" | "should" | "will" => format!("Checks if {rest}."),
         "create" | "new" | "build" | "make" | "init" => format!("Creates {rest}."),
         "delete" | "remove" | "drop" | "clear" => format!("Removes {rest}."),

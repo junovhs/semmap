@@ -33,7 +33,7 @@ Implements commands functionality. Orchestrates business logic.
 → Exports: deps, generate, update, validate
 
 `src/deps.rs`
-Implements deps functionality. Parses input into structured data.
+Dependency analysis and layer violation detection. Parses input into structured data.
 → Exports: analyze, check_layer_violations, render_mermaid
 
 `src/doc_extractor.rs`
@@ -91,7 +91,7 @@ Validates SEMMAP files for correctness and completeness. Supports application fu
 ## Layer 3 -- Utilities
 
 `src/commands/update_helpers.rs`
-Sets the helpers. Provides reusable helper functions.
+Updates helpers. Provides reusable helper functions.
 → Exports: add_new_entries, remove_deleted_entries
 
 `src/path_utils.rs`
@@ -117,10 +117,10 @@ Implements parser tests. Verifies correctness.
 Current directory should produce empty prefix. Verifies correctness.
 
 `tests/update_more_tests.rs`
-Sets the more tests. Verifies correctness.
+Updates more tests. Verifies correctness.
 
 `tests/update_tests.rs`
-Sets the tests. Verifies correctness.
+Updates tests. Verifies correctness.
 
 `tests/validator_tests.rs`
 A valid SEMMAP with proper structure should pass validation. Verifies correctness.

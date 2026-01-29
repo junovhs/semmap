@@ -1,5 +1,6 @@
 //! Stereotype classification for architectural role detection.
-//! Infers a file's role from its name, imports, and code patterns.
+
+use std::path::Path;
 
 /// Architectural stereotypes for code classification.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,15 +22,15 @@ pub enum Stereotype {
 
 /// Classify a file into an architectural stereotype.
 pub fn classify(path: &str, content: &str) -> Stereotype {
-    let lower_path = path.to_lowercase();
+    let lower = path.to_lowercase();
 
-    if let Some(s) = classify_by_filename(&lower_path) {
+    if let Some(s) = classify_by_filename(&lower, path) {
         return s;
     }
     if let Some(s) = classify_by_imports(content) {
         return s;
     }
-    if let Some(s) = classify_by_name_pattern(&lower_path, content) {
+    if let Some(s) = classify_by_name_pattern(&lower, content) {
         return s;
     }
     if is_mostly_structs(content) {
@@ -39,56 +40,53 @@ pub fn classify(path: &str, content: &str) -> Stereotype {
     Stereotype::Unknown
 }
 
-fn classify_by_filename(path: &str) -> Option<Stereotype> {
-    if is_config_file(path) {
+fn classify_by_filename(lower: &str, path: &str) -> Option<Stereotype> {
+    if is_config_file(lower, path) {
         return Some(Stereotype::Config);
     }
-    if is_test_file(path) {
+    if lower.contains("test") || lower.contains("spec") {
         return Some(Stereotype::Test);
     }
-    if is_entrypoint(path) {
+    if lower.ends_with("main.rs") || lower.ends_with("lib.rs") {
         return Some(Stereotype::Entrypoint);
     }
-    if path.contains("error") || path.contains("err.") {
+    if lower.contains("error") {
         return Some(Stereotype::Error);
     }
     None
 }
 
 fn classify_by_imports(content: &str) -> Option<Stereotype> {
-    // Parse actual use statements - check line starts with "use crate::"
     for line in content.lines() {
         let t = line.trim();
-        if t.starts_with("use clap") || t.starts_with("use structopt") || t.starts_with("use argh")
-        {
+        if t.starts_with("use clap") || t.starts_with("use structopt") {
             return Some(Stereotype::Cli);
         }
-        if t.starts_with("use axum") || t.starts_with("use actix") || t.starts_with("use rocket") {
+        if t.starts_with("use axum") || t.starts_with("use actix") {
             return Some(Stereotype::Handler);
         }
-        if t.starts_with("use diesel") || t.starts_with("use sqlx") || t.starts_with("use rusqlite")
-        {
+        if t.starts_with("use diesel") || t.starts_with("use sqlx") {
             return Some(Stereotype::Repository);
         }
     }
     None
 }
 
-fn classify_by_name_pattern(path: &str, content: &str) -> Option<Stereotype> {
+fn classify_by_name_pattern(lower: &str, content: &str) -> Option<Stereotype> {
     let has_regex = content.lines().any(|l| l.trim().starts_with("use regex"));
-    if path.contains("parse") || has_regex {
+    if lower.contains("parse") || has_regex {
         return Some(Stereotype::Parser);
     }
-    if path.contains("format") || path.contains("render") {
+    if lower.contains("format") || lower.contains("render") {
         return Some(Stereotype::Formatter);
     }
-    if path.contains("util") || path.contains("helper") {
+    if lower.contains("util") || lower.contains("helper") {
         return Some(Stereotype::Utility);
     }
-    if path.contains("types") || path.contains("model") {
+    if lower.contains("types") || lower.contains("model") {
         return Some(Stereotype::Entity);
     }
-    if path.contains("service") || path.contains("command") {
+    if lower.contains("service") || lower.contains("command") {
         return Some(Stereotype::Service);
     }
     None
@@ -113,21 +111,14 @@ pub fn stereotype_to_why(s: Stereotype) -> &'static str {
     }
 }
 
-fn is_config_file(path: &str) -> bool {
-    path.ends_with(".toml")
-        || path.ends_with(".yaml")
-        || path.ends_with(".yml")
-        || path.ends_with(".json")
-        || path.contains("config")
-        || path.contains("cargo")
-}
+fn is_config_file(lower: &str, path: &str) -> bool {
+    let p = Path::new(path);
+    let is_config_ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| matches!(e.to_lowercase().as_str(), "toml" | "yaml" | "yml" | "json"));
 
-fn is_test_file(path: &str) -> bool {
-    path.contains("test") || path.contains("spec")
-}
-
-fn is_entrypoint(path: &str) -> bool {
-    path.ends_with("main.rs") || path.ends_with("lib.rs") || path.ends_with("mod.rs")
+    is_config_ext || lower.contains("config") || lower.contains("cargo")
 }
 
 fn is_mostly_structs(content: &str) -> bool {
