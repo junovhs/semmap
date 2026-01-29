@@ -1,8 +1,10 @@
-use semmap::{types::Layer, SemmapFile};
+use crate::path_utils;
+use crate::types::Layer;
+use crate::SemmapFile;
 
 pub fn add_new_entries(semmap: &mut SemmapFile, added: &[String], fresh: &SemmapFile, prefix: &str) {
     for path in added {
-        let lookup = super::path_utils::strip_prefix_for_lookup(prefix, path);
+        let lookup = path_utils::strip_prefix_for_lookup(prefix, path);
         if let Some(entry) = fresh.find_entry(&lookup) {
             let inferred = fresh.layers.iter()
                 .find(|l| l.entries.iter().any(|e| e.path == lookup))
@@ -13,7 +15,6 @@ pub fn add_new_entries(semmap: &mut SemmapFile, added: &[String], fresh: &Semmap
             } else {
                 semmap.layers.push(Layer::new(inferred, format!("Layer {inferred}")));
                 semmap.layers.sort_by_key(|l| l.number);
-                // We know this will succeed because we just added it
                 semmap.layers.iter().position(|l| l.number == inferred)
                     .unwrap_or(0)
             };
@@ -32,4 +33,6 @@ pub fn remove_deleted_entries(semmap: &mut SemmapFile, removed: &[String]) {
     for layer in &mut semmap.layers {
         layer.entries.retain(|e| !removed_set.contains(e.path.as_str()));
     }
+    // Remove empty layers
+    semmap.layers.retain(|l| !l.entries.is_empty());
 }

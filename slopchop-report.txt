@@ -1,5 +1,5 @@
 SLOPCHOP CHECK REPORT
-Generated: 2026-01-28 16:06:14
+Generated: 2026-01-28 16:38:28
 Status: PASSED
 
 === DASHBOARD ===
@@ -13,7 +13,7 @@ Top 5 Cognitive Complexity:
 Top 5 Largest Files (Tokens):
   1419  src\deps.rs
   1405  src\validator.rs
-  1241  src\commands.rs
+  1263  src\commands.rs
   1217  src\parser.rs
   1214  tests\deps_tests.rs
 
@@ -24,7 +24,7 @@ None. Codebase is clean.
 
 >>> COMMAND: cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::unwrap_used -W clippy::expect_used -W clippy::indexing_slicing -A clippy::struct_excessive_bools -A clippy::module_name_repetitions -A clippy::missing_errors_doc -A clippy::must_use_candidate
     Checking semmap v0.1.0 (C:\Users\SpencerNunamakerTrav\semmap)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.34s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.61s
 
 
 >>> COMMAND: cargo test
@@ -41,19 +41,19 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 running 6 tests
 test test_render_mermaid_edges ... ok
+test test_render_mermaid_nodes ... ok
 test test_layer_violation_detected ... ok
 test test_render_mermaid_header ... ok
-test test_render_mermaid_nodes ... ok
-test test_same_layer_no_violation ... ok
 test test_valid_dependency_no_violation ... ok
+test test_same_layer_no_violation ... ok
 
 test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
 running 3 tests
-test test_generate_respects_excludes ... ok
 test test_generate_extracts_exports ... ok
 test test_inference_main_lib_layer1 ... ok
+test test_generate_respects_excludes ... ok
 
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
@@ -63,7 +63,7 @@ test test_generate_defaults_to_layer2 ... ok
 test test_generate_identifies_tests_layer4 ... ok
 test test_generate_finds_config_layer0 ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
 running 6 tests
@@ -78,25 +78,41 @@ test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
 running 8 tests
-test test_build_root_prefix_current_dir ... ok
 test test_build_root_prefix_relative ... ok
-test test_prefix_path_empty ... ok
+test test_build_root_prefix_current_dir ... ok
 test test_strip_prefix_empty ... ok
-test test_prefix_path_with_prefix ... ok
 test test_build_root_prefix_plain ... ok
 test test_strip_prefix_no_match ... ok
 test test_strip_prefix_with_prefix ... ok
+test test_prefix_path_empty ... ok
+test test_prefix_path_with_prefix ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
+running 3 tests
+test test_update_preserves_existing_descriptions ... ok
+test test_update_is_idempotent ... ok
+test test_update_creates_missing_layers_for_new_entries ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 3 tests
+test test_update_with_root_prefix_handles_paths_correctly ... ok
+test test_update_removes_deleted_files ... ok
+test test_update_adds_new_file_to_correct_layer ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
 running 8 tests
-test test_no_layers_is_error ... ok
-test test_duplicate_paths_is_error ... ok
 test test_missing_purpose_is_warning ... ok
-test test_missing_what_is_error ... ok
-test test_layer_gap_is_warning ... ok
 test test_missing_project_name_is_error ... ok
+test test_layer_gap_is_warning ... ok
+test test_missing_what_is_error ... ok
+test test_duplicate_paths_is_error ... ok
+test test_no_layers_is_error ... ok
 test test_valid_semmap_passes ... ok
 test test_file_not_found_is_error ... ok
 
@@ -109,7 +125,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
    Compiling semmap v0.1.0 (C:\Users\SpencerNunamakerTrav\semmap)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.30s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.23s
      Running unittests src\lib.rs (target\debug\deps\semmap-7c686dadd1a50840.exe)
      Running unittests src\main.rs (target\debug\deps\semmap-055a7bcee5ddb0d7.exe)
      Running tests\deps_tests.rs (target\debug\deps\deps_tests-74ee245c7245ed2f.exe)
@@ -117,6 +133,8 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
      Running tests\generator_tests.rs (target\debug\deps\generator_tests-8431557f0fa3192b.exe)
      Running tests\parser_tests.rs (target\debug\deps\parser_tests-e7fb28690ff0685f.exe)
      Running tests\path_utils.rs (target\debug\deps\path_utils-1b64b254b7894600.exe)
+     Running tests\update_more_tests.rs (target\debug\deps\update_more_tests-4b8d5d49e3e425cd.exe)
+     Running tests\update_tests.rs (target\debug\deps\update_tests-4080c9a8236ad8e4.exe)
      Running tests\validator_tests.rs (target\debug\deps\validator_tests-e350187796b8c427.exe)
    Doc-tests semmap
 

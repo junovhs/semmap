@@ -1,3 +1,4 @@
+pub mod commands;
 pub mod deps;
 pub mod error;
 pub mod exports;
@@ -12,4 +13,4 @@ pub mod types;
 pub mod validator;
 
 pub use error::{SemmapError, ValidationIssue};
-pub use types::{DependencyMap, FileEntry, Layer, SemmapFile};
+pub use types::{DependencyMap, FileEntry, Layer, SemmapFile};

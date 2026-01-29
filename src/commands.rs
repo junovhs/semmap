@@ -1,4 +1,5 @@
-use semmap::{deps, formatter, generator, parser, path_utils, validator};
+use crate::error::Severity;
+use crate::{deps, formatter, generator, parser, path_utils, validator};
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
@@ -26,7 +27,7 @@ pub fn validate(file: &Path, root: &Path, strict: bool) -> Result<(), String> {
 
 fn print_validation_result(result: &validator::ValidationResult) {
     for issue in &result.issues {
-        let icon = if issue.severity == semmap::error::Severity::Error { "X" } else { "!" };
+        let icon = if issue.severity == Severity::Error { "X" } else { "!" };
         let location = match (&issue.path, &issue.line) {
             (Some(p), Some(l)) => format!("{p}:{l}"),
             (Some(p), None) => p.clone(),
@@ -96,7 +97,8 @@ pub fn update(file: &Path, root: &Path) -> Result<(), String> {
         purpose: semmap.purpose.clone(),
         ..Default::default()
     });
-    let root_prefix = path_utils::build_root_prefix(root);
+    let semmap_dir = file.parent().unwrap_or(Path::new("."));
+    let root_prefix = path_utils::build_root_prefix_relative(semmap_dir, root);
     let existing: HashSet<String> = semmap.all_paths().into_iter().map(String::from).collect();
     let current: HashSet<String> = fresh.all_paths()
         .into_iter()

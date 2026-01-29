@@ -1,4 +1,4 @@
-mod commands;
+use semmap::commands;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;

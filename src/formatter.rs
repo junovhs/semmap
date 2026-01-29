@@ -12,7 +12,7 @@ pub fn to_markdown(semmap: &SemmapFile) -> String {
 }
 
 fn write_header(out: &mut String, semmap: &SemmapFile) {
-    let _ = writeln!(out, "# {} — Semantic Map\n", semmap.project_name);
+    let _ = writeln!(out, "# {} -- Semantic Map\n", semmap.project_name);
 
     if !semmap.purpose.is_empty() {
         let _ = writeln!(out, "**Purpose:** {}\n", semmap.purpose);
@@ -33,11 +33,11 @@ fn write_legend(out: &mut String, semmap: &SemmapFile) {
 
 fn write_layers(out: &mut String, semmap: &SemmapFile) {
     for layer in &semmap.layers {
-        let _ = writeln!(out, "## Layer {} — {}\n", layer.number, layer.name);
+        let _ = writeln!(out, "## Layer {} -- {}\n", layer.number, layer.name);
 
         for entry in &layer.entries {
             let _ = writeln!(out, "`{}`", entry.path);
-            
+
             let desc = format_description(&entry.description);
             let _ = writeln!(out, "{desc}");
 
